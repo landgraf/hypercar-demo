@@ -1,7 +1,7 @@
 require conf/machine/include/qemu.inc
 
 PREFERRED_PROVIDER_virtual/kernel ?= "linux-yocto"
-KCONFIG_MODE = "allnoconfig"
+KBUILD_DEFCONFIG = "defconfig"
 MACHINE_EXTRA_RRECOMMENDS += "kernel-modules"
 
 SERIAL_CONSOLES ?= "115200;ttyAMA0 115200;hvc0"
@@ -15,7 +15,7 @@ WKS_FILE ?= "hypercar.wks"
 
 # For runqemu
 QB_MACHINE_VIRT_HIGHMEM ?= "on"
-QB_MACHINE = " -cpu cortex-a57 -machine virtualization=true   -machine virt,gic_version=3,highmem=${QB_MACHINE_VIRT_HIGHMEM}"
+QB_MACHINE = " -cpu cortex-a57 -machine virtualization=true   -machine virt,gic_version=3"
 QB_SMP = "-smp 4"
 QB_MEM = "4096"
 # For graphics to work we need to define the VGA device as well as the necessary USB devices
@@ -25,7 +25,7 @@ QB_OPT_APPEND = "-device qemu-xhci -device usb-tablet -device usb-kbd"
 QB_TAP_OPT = "-netdev tap,id=net0,ifname=@TAP@,script=no,downscript=no"
 QB_NETWORK_DEVICE = "-device virtio-net-pci,netdev=net0,mac=@MAC@"
 # Virtio block device
-QB_ROOTFS_OPT = "-drive id=disk0,file=@ROOTFS@,if=none,format=raw,drive=hd0"
+QB_ROOTFS_OPT = "-drive id=hd0,file=@ROOTFS@,if=virtio,format=raw -device virtio-blk-device,drive=hd0"
 # Virtio serial console
 QB_SERIAL_OPT = "-device virtio-serial-pci -chardev null,id=virtcon -device virtconsole,chardev=virtcon"
 QB_TCPSERIAL_OPT = "-device virtio-serial-pci -chardev socket,id=virtcon,port=@PORT@,host=127.0.0.1 -device virtconsole,chardev=virtcon"
