@@ -1,0 +1,30 @@
+Layer for hypercar demo
+
+Dependencies
+============
+meta-openembedded
+meta-virtualization
+meta-arm
+
+
+Patches
+=======
+
+Maintainer: Pavel Zhukov <pazhukov@suse.de>
+
+Table of Contents
+=================
+
+  I. Adding the meta-hypercar layer to your build
+ II. Misc
+
+
+I. Adding the meta-hypercar layer to your build
+=================================================
+
+Run 'bitbake-layers add-layer meta-hypercar'
+
+II. Misc
+========
+
+--- replace with specific information about the meta-hypercar layer ---
