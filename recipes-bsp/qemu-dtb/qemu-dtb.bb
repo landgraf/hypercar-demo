@@ -19,19 +19,15 @@ S = "${WORKDIR}"
 
 do_configure[noexec] = "1"
 do_compile[noexec] = "1"
-
-do_install(){
-        install -d ${D}/${EFI_FILES_PATH}
-	install -m 0644 virt-gicv3.dtb ${D}/${EFI_FILES_PATH}/qemu-aarch64-gicv3.dtb
-}
+do_deploy[nostamp] = "1"
+do_install[nostamp] = "1"
 
 do_deploy(){
-	install -D -m 0644 ${D}/${EFI_FILES_PATH}/qemu-aarch64-gicv3.dtb ${DEPLOYDIR}
+	install -D -m 0644 ${WORKDIR}/virt-gicv3.dtb ${DEPLOYDIR}/qemu-aarch64-gicv3.dtb
 }
-## FIXME
-addtask deploy after do_install before do_build
+
+addtask deploy after do_unpack before do_build
 
 
-FILES:${PN} = "${EFI_FILES_PATH}/qemu-aarch64-*.dtb"
-
+ALLOW_EMPTY:${PN} = "1"
 PACKAGE_ARCH = "${MACHINE_ARCH}"

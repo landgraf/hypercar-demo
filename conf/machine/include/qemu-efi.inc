@@ -1,7 +1,7 @@
 require conf/machine/include/qemu.inc
 
 PREFERRED_PROVIDER_virtual/kernel ?= "linux-yocto"
-KCONFIG_MODE = "--alldefconfig"
+KCONFIG_MODE = "allnoconfig"
 MACHINE_EXTRA_RRECOMMENDS += "kernel-modules"
 
 SERIAL_CONSOLES ?= "115200;ttyAMA0 115200;hvc0"
@@ -35,5 +35,4 @@ QB_DEFAULT_FSTYPE = "wic"
 QB_DEFAULT_KERNEL = "none"
 QB_DEFAULT_BIOS = "uefi.bin"
 QB_ROOTFS_EXTRA_OPT += "bootindex=0"
-EFI_PROVIDER = "grub-efi"
 MACHINE_FEATURES += "efi"
