@@ -11,4 +11,3 @@ do_deploy:append(){
 	fi
 }
 
-do_compile[nostamp] = "1"
