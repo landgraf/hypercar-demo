@@ -1,5 +1,7 @@
 require recipes-core/images/core-image-base.bb
 
+inherit uboot-xen-config
+
 SUMMARY = "Dom0 image for hypercar demo"
 IMAGE_INSTALL:append = " haveged "
 PACKAGE_EXCLUDE:append = "rng-tools"
