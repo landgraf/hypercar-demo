@@ -38,14 +38,19 @@ do_compile(){
         -nographic \
         -serial mon:stdio \
         -machine "dumpdtb=${B}/qemu-dumped.dtb"
+    dtc -I dtb -O dts ${B}/qemu-dumped.dtb > ${B}/qemu-dumped.dts
+    sed 's/compatible = \"arm,pl061.*/status = \"disabled\";/g' -i ${B}/qemu-dumped.dts
+    dtc -I dts -O dtb ${B}/qemu-dumped.dts > ${B}/qemu-dumped.dtb
 }
 
 do_install(){
+        install -D -m 0644 ${B}/qemu-dumped.dts ${D}/usr/share/qemu-dtb/qemu-arm64_generated.dts
 	install -D -m 0644 ${B}/qemu-dumped.dtb ${D}/usr/share/qemu-dtb/qemu-arm64_generated.dtb
 }
 
 do_deploy(){
 	install -D -m 0644 ${B}/qemu-dumped.dtb ${DEPLOYDIR}/qemu-arm64_generated.dtb
+	install -D -m 0644 ${B}/qemu-dumped.dts ${DEPLOYDIR}/qemu-arm64_generated.dts
 }
 
 addtask deploy after do_install before do_build
