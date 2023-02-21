@@ -10,8 +10,9 @@ DEPENDS = "xen ${MACHINE_DTB_PROVIDER} imagebuilder-native u-boot-mkimage-native
 inherit deploy
 inherit native
 ## FIXME ugly!
-do_compile[depends] += "${PN}:do_fetch \
+do_compile[depends] += "${PN}:do_unpack \
 		        dtc-native:do_populate_sysroot \
+			linux-yocto:do_deploy \
 		        imagebuilder-native:do_populate_sysroot \
 		        u-boot-mkimage-native:do_populate_sysroot"
 
