@@ -1,0 +1,26 @@
+diff --git a/samples/synchronization/src/main.c b/samples/synchronization/src/main.c
+index 1befc1c89bb..7947ca06188 100644
+--- a/zephyr/samples/synchronization/src/main.c
++++ b/zephyr/samples/synchronization/src/main.c
+@@ -27,7 +27,7 @@
+ #define PRIORITY 7
+ 
+ /* delay between greetings (in ms) */
+-#define SLEEPTIME 500
++#define SLEEPTIME 2000
+ 
+ 
+ /*
+@@ -55,10 +55,10 @@ void helloLoop(const char *my_name,
+ #endif
+ 		/* say "hello" */
+ 		if (tname == NULL) {
+-			printk("%s: Hello World from cpu %d on %s!\n",
++			printk("%s: Hello automotive team from cpu %d on %s!\n",
+ 				my_name, cpu, CONFIG_BOARD);
+ 		} else {
+-			printk("%s: Hello World from cpu %d on %s!\n",
++			printk("%s: Hello automotive team from cpu %d on %s!\n",
+ 				tname, cpu, CONFIG_BOARD);
+ 		}
+ 

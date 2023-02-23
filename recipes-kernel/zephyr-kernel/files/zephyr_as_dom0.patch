@@ -1,0 +1,32 @@
+diff --git a/boards/arm64/xenvm/xenvm_gicv3_defconfig b/boards/arm64/xenvm/xenvm_gicv3_defconfig
+index b5b63987b49..af7e2c823c9 100644
+--- a/zephyr/boards/arm64/xenvm/xenvm_gicv3_defconfig
++++ b/zephyr/boards/arm64/xenvm/xenvm_gicv3_defconfig
+@@ -18,3 +18,5 @@ CONFIG_LOG=y
+ CONFIG_LOG_MODE_MINIMAL=n
+ 
+ CONFIG_USERSPACE=n
++CONFIG_XEN_INITIAL_DOMAIN=y
++CONFIG_UART_XEN_HVC_CONSOLEIO=y
+diff --git a/boards/arm64/xenvm/xenvm.dts b/boards/arm64/xenvm/xenvm.dts
+index 00607823886..a0b3bbad121 100644
+--- a/zephyr/boards/arm64/xenvm/xenvm.dts
++++ b/zephyr/boards/arm64/xenvm/xenvm.dts
+@@ -26,7 +26,7 @@
+ 
+ 	chosen {
+ 		zephyr,sram = &ram;
+-		zephyr,console = &xen_hvc;
++		zephyr,console = &xen_consoleio_hvc;
+ 	};
+ 
+ 	cpus {
+@@ -74,7 +74,7 @@
+ 		interrupt-parent = <&gic>;
+ 	};
+ 
+-	xen_hvc: hvc {
++	xen_consoleio_hvc: hvc {
+ 		compatible = "xen,hvc-uart";
+ 		status = "okay";
+ 	};
