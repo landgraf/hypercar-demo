@@ -23,12 +23,17 @@ S = "${WORKDIR}"
 DEPENDS = "qemu-helper-native"
 
 do_configure[noexec] = "1"
-do_deploy[nostamp] = "1"
 
 
 do_compile(){
+# runqemu - INFO - Running /mnt/builds/yocto/builds/build-suse/tmp-glibc/work/x86_64-linux/qemu-helper-native/1.0-r1/recipe-sysroot-native/usr/bin/qemu-system-aarch64 -device virtio-net-pci,netdev=net0,mac=52:54:00:12:34:02 -netdev tap,id=net0,ifname=tap0,script=no,downscript=no -object rng-random,filename=/dev/urandom,id=rng0 -device virtio-rng-pci,rng=rng0 -drive id=disk0,file=/mnt/builds/yocto/builds/build-suse/tmp-glibc/deploy/images/qemuarm64-xen-uboot/hypercar-image-demo-qemuarm64-xen-uboot.wic,if=none,format=raw -device virtio-blk-device,drive=disk0   -machine virtualization=true -machine virt,gic_version=3 -cpu cortex-a57 -smp 4 -m 4096 -serial mon:vc -serial null -display sdl,show-cursor=on  -bios /mnt/builds/yocto/builds/build-suse/tmp-glibc/deploy/images/qemuarm64-xen-uboot/u-boot-qemuarm64-xen-uboot.bin 
+
     ${QB_SYSTEM_NAME} \
+        -device virtio-rng-pci \
+	-drive id=disk0,file=/dev/null,if=none,format=raw \
+	-device virtio-blk-device,drive=disk0 \
         -device qemu-xhci \
+	-device virtio-net-pci\
         -device usb-tablet \
         -device usb-kbd \
         ${QB_MACHINE} \
