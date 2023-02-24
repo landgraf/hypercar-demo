@@ -14,7 +14,7 @@ SPDX-FileCopyrightText: <pavel@zhukoff.net>
 
 	<remote name="github" fetch="https://github.com" />
 	<remote name="openembedded" fetch="git://git.openembedded.org" />
-	<remote name="suse" fetch="https://gitlab.suse.de/" />
+	<remote name="suse" fetch="gitlab@gitlab.suse.de:" />
 
 	<project name="bitbake" remote="openembedded" revision="5daecc25a59ce5bf6c31f5085e6caa7cb543517e" path="bitbake" />
 	<project name="openembedded-core" remote="openembedded" revision="0049f6757f6f956fb4cc77b3df6a672c20b53cf4" path="core" />
