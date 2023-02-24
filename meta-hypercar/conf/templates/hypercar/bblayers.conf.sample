@@ -10,7 +10,7 @@ BBLAYERS ?= " \
   ##OEROOT##/meta \
   ##OEROOT##/meta-poky \
   ##OEROOT##/meta-yocto-bsp \
-  ##OEROOT##/meta-hypercar \
+  ##OEROOT##/meta-hypercar/meta-hypercar \
   ##OEROOT##/meta-virtualization \
   ##OEROOT##/meta-openembedded/meta-filesystems \
   ##OEROOT##/meta-openembedded/meta-gnome \

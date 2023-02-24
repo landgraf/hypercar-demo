@@ -14,14 +14,15 @@ SPDX-FileCopyrightText: <pavel@zhukoff.net>
 
 	<remote name="github" fetch="https://github.com" />
 	<remote name="openembedded" fetch="git://git.openembedded.org" />
-	<remote name="suse" fetch="gitlab@gitlab.suse.de:" />
+	<remote name="suse" fetch="https://gitlab.suse.de/" />
 
 	<project name="bitbake" remote="openembedded" revision="5daecc25a59ce5bf6c31f5085e6caa7cb543517e" path="bitbake" />
 	<project name="openembedded-core" remote="openembedded" revision="0049f6757f6f956fb4cc77b3df6a672c20b53cf4" path="core" />
 	<project name="meta-openembedded" remote="openembedded" revision="cba6df61c7cbc4446aab09eb11673bcb6c581307" path="meta-openembedded" />
-	<project name="meta-virtualization" remote="github" revision="147e78a2aff5cb6a29e7f45dd5c4351200cdb117" path="meta-virtualization" />
-	<project name="meta-zephyr" remote="github" revision="3e9d6a3200c2c950490235335a8711b15f82e1b5" path="meta-zephyr" />
-	<project name="meta-arm" remote="github" revision="3af64cee5bf963359e1aa304e55ff673b07f0294" path="meta-arm" />
+	<project name="lgirdk/meta-virtualization.git" remote="github" revision="147e78a2aff5cb6a29e7f45dd5c4351200cdb117" path="meta-virtualization" />
+	<!-- Meta zephyr is known for deleting revs from the master -->
+	<project name="saininav/meta-zephyr.git" remote="github" revision="1312cb2a1932bde47fa099e6ea657e2297e985d2" path="meta-zephyr" />
+	<project name="jonmason/meta-arm.git" remote="github" revision="3af64cee5bf963359e1aa304e55ff673b07f0294" path="meta-arm" />
 	
-	<project name="pazhukov/hypercar" remote="suse" revision="master" path="." />
+	<project name="pazhukov/meta-hypercar.git" remote="suse" revision="master" path="." />
 </manifest>
