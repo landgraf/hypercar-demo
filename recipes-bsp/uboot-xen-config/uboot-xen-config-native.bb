@@ -28,6 +28,7 @@ do_compile(){
 
 do_deploy(){
         install -D -m 0644 ${WORKDIR}/boot.scr ${DEPLOYDIR}/boot.scr
+        install -D -m 0644 ${WORKDIR}/boot.source ${DEPLOYDIR}/boot.source
 }
 
 addtask do_deploy after do_compile before do_build
