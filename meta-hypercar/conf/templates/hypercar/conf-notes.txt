@@ -1,0 +1,19 @@
+
+### Shell environment set up for builds. ###
+
+You can now run 'bitbake <target>'
+
+Supported targets:
+- hypecar-image-demo
+
+Supported machines (first is the default):
+- qemuarm64-xen-uboot
+
+MACHINE variable can be set up in conf/local.conf file under build directory
+or via command line, e.g.:
+
+    $ MACHINE=<supported_machine> bitbake <target>
+
+tl;dr:
+    $ bitbake hypecar-image-demo
+
