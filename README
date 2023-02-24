@@ -1,0 +1,23 @@
+Layer for hypercar demo
+
+Dependencies
+============
+meta-openembedded
+meta-virtualization
+meta-arm
+
+
+Patches
+=======
+
+Maintainer: Pavel Zhukov <pazhukov@suse.de>
+
+Build
+=====
+
+install repo tool from your distribution
+
+mkdir hypercar && cd hypercar
+repo init -u https://gitlab.suse.de/pazhukov/meta-hypercar.git
+repo sync --no-clone-bundle
+
