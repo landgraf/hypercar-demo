@@ -1,4 +1,3 @@
 part /boot --source bootimg-partition --ondisk=vda --fstype=vfat --label boot --active --align 4096 --fixed-size 512
 part /     --source rootfs --ondisk=vda --fstype=ext4 --label dom0root  --align 4096 --fixed-size 2048 --exclude-path data/ --exclude-path boot/
 part none --source rootfs --ondisk=vda --fstype=ext4 --label dom0root  --align 4096 --fixed-size 2048 --exclude-path data/ --exclude-path boot/
-part empty --ondisk=vda --fstype=none  --align 4096 --fixed-size 512 
