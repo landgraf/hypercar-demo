@@ -10,11 +10,17 @@ DEPENDS = "xen ${MACHINE_DTB_PROVIDER} imagebuilder-native u-boot-mkimage-native
 inherit deploy
 inherit native
 ## FIXME ugly!
+
+DOM_DEPLOY ?= "${@' '.join([ dom + ':do_deploy' for dom in d.getVar('HYPERCAR_DOMS').split()])}"
+DTB_DEPLOY ?= "${@' '.join([ dom + ':do_deploy' for dom in d.getVar('MACHINE_DTB_PROVIDER').split()])}"
 do_compile[depends] += "${PN}:do_unpack \
 		        dtc-native:do_populate_sysroot \
 			linux-yocto:do_deploy \
 		        imagebuilder-native:do_populate_sysroot \
-		        u-boot-mkimage-native:do_populate_sysroot"
+		        u-boot-mkimage-native:do_populate_sysroot \
+			${DOM_DEPLOY} \
+			${DTB_DEPLOY} \
+			"
 
 ## We don't need any of this
 ## noexec is not enough because it causes circular dependencies 
