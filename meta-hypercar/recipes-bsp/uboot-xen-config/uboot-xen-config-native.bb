@@ -16,6 +16,7 @@ DTB_DEPLOY ?= "${@' '.join([ dom + ':do_deploy' for dom in d.getVar('MACHINE_DTB
 do_compile[depends] += "${PN}:do_unpack \
 		        dtc-native:do_populate_sysroot \
 			linux-yocto:do_deploy \
+			xen:do_deploy \
 		        imagebuilder-native:do_populate_sysroot \
 		        u-boot-mkimage-native:do_populate_sysroot \
 			${DOM_DEPLOY} \
