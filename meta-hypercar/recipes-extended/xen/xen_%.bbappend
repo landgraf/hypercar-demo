@@ -1,5 +1,7 @@
 FILESEXTRAPATHS:prepend := "${THISDIR}/${PN}:"
 
+SRC_URI:append = " file://debug_fdt.patch "
+
 do_deploy:append(){
 	install -d ${DEPLOYDIR}
 	if [ -f ${B}/xen/xen ]; then
@@ -15,4 +17,5 @@ do_configure:prepend(){
 	echo "CONFIG_SCHED_NULL=y"  >> xen/.config
 	echo "CONFIG_SCHED_NULL_DEFAULT=y"  >> xen/.config
 	echo "CONFIG_IOREQ_SERVER=y"  >> xen/.config
+	echo "CONFIG_ARGO=y" >> xen/.config
 }

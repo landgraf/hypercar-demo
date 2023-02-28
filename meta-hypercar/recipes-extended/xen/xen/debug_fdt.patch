@@ -1,0 +1,31 @@
+diff --git a/xen/arch/arm/domain_build.c b/xen/arch/arm/domain_build.c
+index edca23b986..51c1ec7172 100644
+--- a/xen/arch/arm/domain_build.c
++++ b/xen/arch/arm/domain_build.c
+@@ -3115,7 +3115,7 @@ static int __init check_partial_fdt(void *pfdt, size_t size)
+ 
+     if ( fdt_magic(pfdt) != FDT_MAGIC )
+     {
+-        dprintk(XENLOG_ERR, "Partial FDT is not a valid Flat Device Tree");
++        dprintk(XENLOG_ERR, "Partial FDT (%p) => (%#010x) != (%#010x) is not a valid Flat Device Tree", pfdt, fdt_magic(pfdt), FDT_MAGIC);
+         return -EINVAL;
+     }
+ 
+@@ -3145,7 +3145,7 @@ static int __init domain_handle_dtb_bootmodule(struct domain *d,
+                          kinfo->dtb_bootmodule->size);
+     if ( pfdt == NULL )
+         return -EFAULT;
+-
++    dprintk(XENLOG_ERR, "domain_handle_dtb_bootmodule %#lx => %p;\n", kinfo->dtb_bootmodule->start, pfdt);
+     res = check_partial_fdt(pfdt, kinfo->dtb_bootmodule->size);
+     if ( res < 0 )
+         return res;
+@@ -3223,7 +3223,7 @@ static int __init prepare_dtb_domU(struct domain *d, struct kernel_info *kinfo)
+     ret = fdt_create(kinfo->fdt, DOMU_DTB_SIZE);
+     if ( ret < 0 )
+         goto err;
+-
++    dprintk(XENLOG_ERR, "fdt_create created:  %p => %d;\n", (kinfo->fdt), DOMU_DTB_SIZE);
+     ret = fdt_finish_reservemap(kinfo->fdt);
+     if ( ret < 0 )
+         goto err;

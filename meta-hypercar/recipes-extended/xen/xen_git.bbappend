@@ -1,4 +1,4 @@
-SRCREV = "91d4d9506a4e8906253d1280bd5a1f39668fad64"
-XEN_BRANCH = "staging"
+SRCREV = "608f85a1818697156b72ace4913a17c8178a0ef5"
+XEN_BRANCH = "master"
 
 SRC_URI:remove = " file://xen-flask-race-fix.patch"
