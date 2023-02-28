@@ -16,8 +16,8 @@ SPDX-FileCopyrightText: <pavel@zhukoff.net>
 	<remote name="openembedded" fetch="git://git.openembedded.org" />
 	<remote name="suse" fetch="https://gitlab.suse.de/" />
 
-	<project name="bitbake" remote="openembedded" revision="5daecc25a59ce5bf6c31f5085e6caa7cb543517e" path="bitbake" />
-	<project name="openembedded-core" remote="openembedded" revision="0049f6757f6f956fb4cc77b3df6a672c20b53cf4" path="core" />
+	<project name="bitbake" remote="openembedded" revision="dea1b2f3fc31f28daed5da16e62da8895d6e5716" path="bitbake" />
+	<project name="openembedded-core" remote="openembedded" revision="0bbdf48ae2b97dbaa158efd5b98cfe426a372714" path="core" />
 	<project name="meta-openembedded" remote="openembedded" revision="cba6df61c7cbc4446aab09eb11673bcb6c581307" path="meta-openembedded" />
 	<project name="lgirdk/meta-virtualization.git" remote="github" revision="147e78a2aff5cb6a29e7f45dd5c4351200cdb117" path="meta-virtualization" />
 	<!-- Meta zephyr is known for deleting revs from the master -->
