@@ -10,7 +10,10 @@ inherit native
 LICENSE="Apache-2.0"
 SRCREV = "e5f42163666242e2d7fcec4a4bfdf89fd70fef95"
 LIC_FILES_CHKSUM = "file://LICENSE;md5=d2794c0df5b907fdace235a619d80314"
-SRC_URI = "git://gitlab.com/ViryaOS/imagebuilder.git;protocol=https;branch=master "
+SRC_URI = "git://gitlab.com/ViryaOS/imagebuilder.git;protocol=https;branch=master \
+	   file://add_static_heap.patch \
+	   file://add_static_shared_memory.patch \
+	  "
 
 S="${WORKDIR}/git"
 

@@ -1,0 +1,82 @@
+From: "jiamei.xie" <jiamei.xie@arm.com>
+Subject: [ImageBuilder][PATCH 1/2] uboot-script-gen: Add support for static heap
+To: xen-devel@lists.xenproject.org
+Cc: wei.chen@arm.com, jiamei.xie@arm.com, sstabellini@kernel.org
+Date: Thu,  2 Mar 2023 04:46:05 +0000 (1 day, 2 hours, 11 minutes ago)
+Flags: seen, list
+Maildir: /zhukoff/upstream/xen
+
+From: jiamei Xie <jiamei.xie@arm.com>
+
+Add a new config parameter to configure static heap.
+STATIC_HEAP="baseaddr1 size1 ... baseaddrN sizeN"
+if specified, indicates the host physical address regions
+[baseaddr, baseaddr + size) to be reserved as static heap.
+
+For instance, STATIC_HEAP="0x50000000 0x30000000", if specified,
+indicates the host memory region starting from paddr 0x50000000
+with a size of 0x30000000 to be reserved as static heap.
+
+Signed-off-by: jiamei Xie <jiamei.xie@arm.com>
+---
+ README.md                |  4 ++++
+ scripts/uboot-script-gen | 20 ++++++++++++++++++++
+ 2 files changed, 24 insertions(+)
+
+diff --git a/README.md b/README.md
+index 814a004..787f413 100644
+--- a/README.md
++++ b/README.md
+@@ -256,6 +256,10 @@ Where:
+ 
+ - NUM_CPUPOOLS specifies the number of boot-time cpupools to create.
+ 
++- STATIC_HEAP="baseaddr1 size1 ... baseaddrN sizeN"
++  if specified, indicates the host physical address regions
++  [baseaddr, baseaddr + size) to be reserved as static heap.
++
+ Then you can invoke uboot-script-gen as follows:
+ 
+ ```
+diff --git a/scripts/uboot-script-gen b/scripts/uboot-script-gen
+index f07e334..4775293 100755
+--- a/scripts/uboot-script-gen
++++ b/scripts/uboot-script-gen
+@@ -189,6 +189,21 @@ function add_device_tree_static_mem()
+     dt_set "$path" "xen,static-mem" "hex" "${cells[*]}"
+ }
+ 
++function add_device_tree_static_heap()
++{
++    local path=$1
++    local regions=$2
++    local cells=()
++    local val
++
++    for val in ${regions[@]}
++    do
++        cells+=("$(printf "0x%x 0x%x" $(($val >> 32)) $(($val & ((1 << 32) - 1))))")
++    done
++
++    dt_set "$path" "xen,static-heap" "hex" "${cells[*]}"
++}
++
+ function add_device_tree_cpupools()
+ {
+     local cpu
+@@ -344,6 +359,11 @@ function xen_device_tree_editing()
+     then
+         add_device_tree_cpupools
+     fi
++
++    if test "${STATIC_HEAP}"
++    then
++        add_device_tree_static_heap "/chosen" "${STATIC_HEAP}"
++    fi
+ }
+ 
+ function linux_device_tree_editing()
+-- 
+2.25.1
+
+
