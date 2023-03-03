@@ -1,6 +1,5 @@
 FILESEXTRAPATHS:prepend := "${THISDIR}/${PN}:"
 
-SRC_URI:append = " file://debug_fdt.patch "
 
 do_deploy:append(){
 	install -d ${DEPLOYDIR}
