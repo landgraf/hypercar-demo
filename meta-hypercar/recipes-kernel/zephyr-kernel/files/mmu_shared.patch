@@ -1,0 +1,17 @@
+diff --git a/soc/arm64/xenvm/mmu_regions.c b/soc/arm64/xenvm/mmu_regions.c
+index 43e3ada82e..0fe57e49cd 100644
+--- a/zephyr/soc/arm64/xenvm/mmu_regions.c
++++ b/zephyr/soc/arm64/xenvm/mmu_regions.c
+@@ -23,6 +23,12 @@ static const struct arm_mmu_region mmu_regions[] = {
+ 			      DT_REG_ADDR_BY_IDX(DT_INST(0, xen_xen), 0),
+ 			      DT_REG_SIZE_BY_IDX(DT_INST(0, xen_xen), 0),
+ 			      MT_NORMAL | MT_P_RW_U_NA | MT_NS),
++
++	MMU_REGION_FLAT_ENTRY("HYPERCAR_MEM_O",
++			      0x6000000,
++			      0x1000,
++			      MT_NORMAL_NC | MT_P_RW_U_RW | MT_NS),
++
+ };
+ 
+ const struct arm_mmu_config mmu_config = {
