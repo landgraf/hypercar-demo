@@ -39,7 +39,7 @@ index 43e3ada82e..0fe57e49cd 100644
 +
 +	MMU_REGION_FLAT_ENTRY("HYPERCAR_MEM_O",
 +			      0x6000000,
-+			      0x1000000,
++			      0x1000,
 +			      MT_NORMAL_NC | MT_P_RW_U_RW | MT_NS),
 +
  };
