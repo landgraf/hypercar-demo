@@ -18,4 +18,7 @@ do_configure:prepend(){
 	echo "CONFIG_SCHED_NULL_DEFAULT=y"  >> xen/.config
 	echo "CONFIG_IOREQ_SERVER=y"  >> xen/.config
 	echo "CONFIG_ARGO=y" >> xen/.config
+	echo "CONFIG_STATIC_MEMORY=y" >> xen/.config
+	echo "CONFIG_MEM_ACCESS=y" >> xen/.config
+	echo "CONFIG_STATIC_SHM=y" >> xen/.config
 }
