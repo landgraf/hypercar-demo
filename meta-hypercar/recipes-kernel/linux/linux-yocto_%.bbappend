@@ -6,3 +6,10 @@ SRC_URI:append = " file://xen.cfg \
 
 COMPATIBLE_MACHINE:append:qemuarm64-xen-efi =  "^qemuarm64-xen-efi$"
 COMPATIBLE_MACHINE:append:qemuarm64-xen-uboot =  "^qemuarm64-xen-uboot$"
+
+KERNEL_FEATURES:append = " \
+    ${@bb.utils.contains('DISTRO_FEATURES', \
+                         'xen', \
+                         'features/xen-shmem.scc', \
+                         '', d)} \
+"

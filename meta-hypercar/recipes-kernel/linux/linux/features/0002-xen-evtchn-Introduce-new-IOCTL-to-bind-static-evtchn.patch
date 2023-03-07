@@ -1,0 +1,170 @@
+From 7816d347be9171ad0979eade11dfb6b0e86dedb6 Mon Sep 17 00:00:00 2001
+From: Rahul Singh <rahul.singh@arm.com>
+Date: Mon, 21 Mar 2022 12:09:25 +0000
+Subject: [PATCH 2/4] xen/evtchn: Introduce new IOCTL to bind static evtchn
+MIME-Version: 1.0
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8bit
+
+Xen 4.17 will supports the creation of static evtchn. To allow user
+space application to bind static events introduce new ioctl
+"IOCTL_EVTCHN_BIND_STATIC". Also, static event channels should not be
+closed, add the new bool variable "is_static" in "struct irq_info" to
+mark the event channel static when creating the event channel to avoid
+closing the static evtchn.
+
+Issue-Id: SCM-4659
+Signed-off-by: Rahul Singh <rahul.singh@arm.com>
+Signed-off-by: Hongda Deng <Hongda.Deng@arm.com>
+Change-Id: Ic4d51b5b79bebedd45fb26ace8e0eb0a44913eb1
+Upstream-Status: Inappropriate [other]
+  Implementation pending further discussion
+Signed-off-by: Robbie Cao <robbie.cao@arm.com>
+---
+ drivers/xen/events/events_base.c |  7 +++++--
+ drivers/xen/evtchn.c             | 22 +++++++++++++++++-----
+ include/uapi/xen/evtchn.h        |  9 +++++++++
+ include/xen/events.h             |  2 +-
+ 4 files changed, 32 insertions(+), 8 deletions(-)
+
+diff --git a/drivers/xen/events/events_base.c b/drivers/xen/events/events_base.c
+index 46d9295d9a6e..76815a3b56f9 100644
+--- a/drivers/xen/events/events_base.c
++++ b/drivers/xen/events/events_base.c
+@@ -111,6 +111,7 @@ struct irq_info {
+ 	unsigned int irq_epoch; /* If eoi_cpu valid: irq_epoch of event */
+ 	u64 eoi_time;           /* Time in jiffies when to EOI. */
+ 	raw_spinlock_t lock;
++	u8 is_static;           /* Is event channel static */
+ 
+ 	union {
+ 		unsigned short virq;
+@@ -980,7 +981,8 @@ static void __unbind_from_irq(unsigned int irq)
+ 		unsigned int cpu = cpu_from_irq(irq);
+ 		struct xenbus_device *dev;
+ 
+-		xen_evtchn_close(evtchn);
++		if (!info->is_static)
++			xen_evtchn_close(evtchn);
+ 
+ 		switch (type_from_irq(irq)) {
+ 		case IRQT_VIRQ:
+@@ -1572,7 +1574,7 @@ int xen_set_irq_priority(unsigned irq, unsigned priority)
+ }
+ EXPORT_SYMBOL_GPL(xen_set_irq_priority);
+ 
+-int evtchn_make_refcounted(evtchn_port_t evtchn)
++int evtchn_make_refcounted(evtchn_port_t evtchn, bool is_static)
+ {
+ 	int irq = get_evtchn_to_irq(evtchn);
+ 	struct irq_info *info;
+@@ -1588,6 +1590,7 @@ int evtchn_make_refcounted(evtchn_port_t evtchn)
+ 	WARN_ON(info->refcnt != -1);
+ 
+ 	info->refcnt = 1;
++	info->is_static = is_static;
+ 
+ 	return 0;
+ }
+diff --git a/drivers/xen/evtchn.c b/drivers/xen/evtchn.c
+index c99415a70051..47681d4c696b 100644
+--- a/drivers/xen/evtchn.c
++++ b/drivers/xen/evtchn.c
+@@ -366,7 +366,8 @@ static int evtchn_resize_ring(struct per_user_data *u)
+ 	return 0;
+ }
+ 
+-static int evtchn_bind_to_user(struct per_user_data *u, evtchn_port_t port)
++static int evtchn_bind_to_user(struct per_user_data *u, evtchn_port_t port,
++			bool is_static)
+ {
+ 	struct user_evtchn *evtchn;
+ 	struct evtchn_close close;
+@@ -402,7 +403,7 @@ static int evtchn_bind_to_user(struct per_user_data *u, evtchn_port_t port)
+ 	if (rc < 0)
+ 		goto err;
+ 
+-	rc = evtchn_make_refcounted(port);
++	rc = evtchn_make_refcounted(port, is_static);
+ 	return rc;
+ 
+ err:
+@@ -456,7 +457,7 @@ static long evtchn_ioctl(struct file *file,
+ 		if (rc != 0)
+ 			break;
+ 
+-		rc = evtchn_bind_to_user(u, bind_virq.port);
++		rc = evtchn_bind_to_user(u, bind_virq.port, false);
+ 		if (rc == 0)
+ 			rc = bind_virq.port;
+ 		break;
+@@ -482,7 +483,7 @@ static long evtchn_ioctl(struct file *file,
+ 		if (rc != 0)
+ 			break;
+ 
+-		rc = evtchn_bind_to_user(u, bind_interdomain.local_port);
++		rc = evtchn_bind_to_user(u, bind_interdomain.local_port, false);
+ 		if (rc == 0)
+ 			rc = bind_interdomain.local_port;
+ 		break;
+@@ -507,7 +508,7 @@ static long evtchn_ioctl(struct file *file,
+ 		if (rc != 0)
+ 			break;
+ 
+-		rc = evtchn_bind_to_user(u, alloc_unbound.port);
++		rc = evtchn_bind_to_user(u, alloc_unbound.port, false);
+ 		if (rc == 0)
+ 			rc = alloc_unbound.port;
+ 		break;
+@@ -536,6 +537,17 @@ static long evtchn_ioctl(struct file *file,
+ 		break;
+ 	}
+ 
++	case IOCTL_EVTCHN_BIND_STATIC: {
++		struct ioctl_evtchn_bind bind;
++
++		rc = -EFAULT;
++		if (copy_from_user(&bind, uarg, sizeof(bind)))
++			break;
++
++		rc = evtchn_bind_to_user(u, bind.port, true);
++		break;
++	}
++
+ 	case IOCTL_EVTCHN_NOTIFY: {
+ 		struct ioctl_evtchn_notify notify;
+ 		struct user_evtchn *evtchn;
+diff --git a/include/uapi/xen/evtchn.h b/include/uapi/xen/evtchn.h
+index 7fbf732f168f..aef2b75f3413 100644
+--- a/include/uapi/xen/evtchn.h
++++ b/include/uapi/xen/evtchn.h
+@@ -101,4 +101,13 @@ struct ioctl_evtchn_restrict_domid {
+ 	domid_t domid;
+ };
+ 
++/*
++ * Bind statically allocated @port.
++ */
++#define IOCTL_EVTCHN_BIND_STATIC			\
++	_IOC(_IOC_NONE, 'E', 7, sizeof(struct ioctl_evtchn_bind))
++struct ioctl_evtchn_bind {
++	unsigned int port;
++};
++
+ #endif /* __LINUX_PUBLIC_EVTCHN_H__ */
+diff --git a/include/xen/events.h b/include/xen/events.h
+index 344081e71584..17c07e06151d 100644
+--- a/include/xen/events.h
++++ b/include/xen/events.h
+@@ -69,7 +69,7 @@ int xen_set_irq_priority(unsigned irq, unsigned priority);
+ /*
+  * Allow extra references to event channels exposed to userspace by evtchn
+  */
+-int evtchn_make_refcounted(evtchn_port_t evtchn);
++int evtchn_make_refcounted(evtchn_port_t evtchn, bool is_static);
+ int evtchn_get(evtchn_port_t evtchn);
+ void evtchn_put(evtchn_port_t evtchn);
+ 
+-- 
+2.25.1
+

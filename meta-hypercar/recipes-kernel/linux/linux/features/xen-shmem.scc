@@ -1,0 +1,14 @@
+# Copyright (c) 2022, Arm Limited.
+#
+# SPDX-License-Identifier: MIT
+
+define KFEATURE_DESCRIPTION "Xen shared memory for dom0less VM-to-VM communications"
+
+include features/xen/xen.scc
+
+kconf non-hardware xen-shmem.cfg
+
+patch 0001-xen-arm-Enable-xen-dom0less-linux-domain.patch
+patch 0002-xen-evtchn-Introduce-new-IOCTL-to-bind-static-evtchn.patch
+patch 0003-xen-arm-Introduce-xen-shared-info-property.patch
+patch 0004-xen-arm-Add-static-shared-memory-driver.patch
