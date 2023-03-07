@@ -22,8 +22,8 @@ index 9a90c6a6a0..47d73bd6e7 100644
 +	printk("Memory initialized: %p => %d !\n", ptr, *ptr);
 +	k_msleep(SLEEPTIME*10);
 +	while (1){
-+		printk("%s: Hello automotive team! Shared memory %p value: %d \n",
-+				CONFIG_BOARD, ptr, *ptr);
++		// printk("%s: Hello automotive team! Shared memory %p value: %d \n",
++		//		CONFIG_BOARD, ptr, *ptr);
 +		(*ptr)++;
 +		k_msleep(SLEEPTIME);
 +	}
