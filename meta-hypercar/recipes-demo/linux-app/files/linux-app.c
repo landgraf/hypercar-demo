@@ -66,15 +66,7 @@ int main(int argc, char *argv[]) {
   if ((counter = shmem_mmap(10*sizeof(counter))) == MAP_FAILED){
     perror("Failed to map shared memory counter");
   }
-  printf("Shared memory mapped to %p\n", counter);
-  for (int i=0; i<domain; i++){
-    printf("Moving pointer %p \n", counter);
-    counter++;
-  }
-  printf("Current domain pointer %p\n ", counter);
-  //  for (int i=0; i<domain; i++){
-  //  counter++;
-  //}
+  counter+=domain;
   /* Upon SIGALRM, increase counter by */
   if (signal(SIGALRM, (void (*)(int)) increase_counter) == SIG_ERR) {
     perror("Unable to catch SIGALRM");
@@ -97,9 +89,9 @@ int main(int argc, char *argv[]) {
 void increase_counter(void) 
 {
   (*counter)++;
-  printf("Domain %d Counter increased to %d.\n", domain, *counter);
+  // printf("Domain %d Counter increased to %d.\n", domain, *counter);
   /* Inject an error at value 100 */
-  if (*counter > 100) {
+  if (*counter > 100 && *counter%100 < 10) {
     (*counter)++;
   }
 }
