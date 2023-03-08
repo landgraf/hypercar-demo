@@ -6,16 +6,17 @@
 #include <sys/ioctl.h>
 #include <fcntl.h>
 #include <sys/mman.h>
-
+#include <ctype.h>
+#include <errno.h>
 #define INTERVAL 1000   /* number of milliseconds to go off */
-
+#define DOMNUM 10
 #define MS2S(x) x / 1000
 #define MS2US(x) (x * 1000) % 1000000
 
 /* global 8-bit counter */
 /* This counter must be somehow communicated to RTOS! */
-int *counter;;
-char *domain = '\0';
+int *counter;
+int domain = -1;
 
 /* function prototype */
 void increase_counter(void);
@@ -42,21 +43,38 @@ void *shmem_mmap(size_t length){
 
 
 int main(int argc, char *argv[]) {
-
+  char *endptr;
   struct itimerval it_val;  /* for setting itimer */
   if (argc!=2){
     perror("Usage: ./hypercar-app <domain-id>");
-    exit(1);
+    exit(EXIT_FAILURE);
   }
-  
-  domain = argv[1];
+  errno = 0;
+  domain = strtol(argv[1], &endptr, 10);
+  if (errno != 0){
+    perror("Domain ID must be an integer [0-9]");
+    exit(EXIT_FAILURE);
+  };
+  if (domain > 9 || domain < 0){
+    perror("Domain ID must be in the range 0..9!");
+    exit(EXIT_FAILURE);
+  };
 
   if (shmem_open() == -1){
     perror("Failed to open shared memory device /dev/xen_mem");
   }
-  if ((counter = shmem_mmap(sizeof(int))) == MAP_FAILED){
+  if ((counter = shmem_mmap(10*sizeof(counter))) == MAP_FAILED){
     perror("Failed to map shared memory counter");
   }
+  printf("Shared memory mapped to %p\n", counter);
+  for (int i=0; i<domain; i++){
+    printf("Moving pointer %p \n", counter);
+    counter++;
+  }
+  printf("Current domain pointer %p\n ", counter);
+  //  for (int i=0; i<domain; i++){
+  //  counter++;
+  //}
   /* Upon SIGALRM, increase counter by */
   if (signal(SIGALRM, (void (*)(int)) increase_counter) == SIG_ERR) {
     perror("Unable to catch SIGALRM");
@@ -70,7 +88,7 @@ int main(int argc, char *argv[]) {
     exit(1);
   }
   *counter = 0;
-  printf("%s: 8-bit counter started from 0. It will never stop.\n", domain);
+  printf("Domain %d: 8-bit counter started from 0. It will never stop.\n", domain);
   while (1) { 
      pause();
   }
@@ -79,7 +97,7 @@ int main(int argc, char *argv[]) {
 void increase_counter(void) 
 {
   (*counter)++;
-  printf("%s Counter increased to %d.\n", domain, *counter);
+  printf("Domain %d Counter increased to %d.\n", domain, *counter);
   /* Inject an error at value 100 */
   if (*counter > 100) {
     (*counter)++;

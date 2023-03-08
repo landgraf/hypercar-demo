@@ -2,28 +2,34 @@ diff --git a/samples/hello_world/src/main.c b/samples/hello_world/src/main.c
 index 9a90c6a6a0..47d73bd6e7 100644
 --- a/zephyr/samples/hello_world/src/main.c
 +++ b/zephyr/samples/hello_world/src/main.c
-@@ -4,9 +4,24 @@
+@@ -4,9 +4,30 @@
   * SPDX-License-Identifier: Apache-2.0
   */
 
 +#include "zephyr/xen/events.h"
 +#define SHAREDMEM_BASE 0x6000000
 +#define SLEEPTIME 50000
++#define DOMNUM 10
  #include <zephyr/kernel.h>
  
  void main(void)
  {
 +       printk("Main starting!\n");
-+	int *ptr;
++	int (*ptr)[DOMNUM];
 +	ptr = SHAREDMEM_BASE;
 +       printk("Pointer ready to use!\n");
-+	*ptr = 0;
++	for (int i=0; i<DOMNUM-3; i++){
++	    (*ptr)[i]=0;
++	}
  	printk("Hello World! %s\n", CONFIG_BOARD);
 +	printk("Memory initialized: %p => %d !\n", ptr, *ptr);
 +	while (1){
-+		printk("%s: Hello automotive team! Shared memory %p value: %d \n",
-+				CONFIG_BOARD, ptr, *ptr);
-+		//(*ptr)++;
++		printk("%s: Hello automotive team! Shared memory %p values are:",
++				CONFIG_BOARD, ptr);
++               for (int i=0; i<DOMNUM; i++){
++		    printk(" DomU%d : %d", i, (*ptr)[i]);
++		}
++               printk("\n");
 +		k_msleep(SLEEPTIME);
 +	}
  }
