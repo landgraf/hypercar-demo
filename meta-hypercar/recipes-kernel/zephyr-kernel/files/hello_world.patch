@@ -2,13 +2,13 @@ diff --git a/samples/hello_world/src/main.c b/samples/hello_world/src/main.c
 index 9a90c6a6a0..47d73bd6e7 100644
 --- a/zephyr/samples/hello_world/src/main.c
 +++ b/zephyr/samples/hello_world/src/main.c
-@@ -4,9 +4,25 @@
+@@ -4,9 +4,24 @@
   * SPDX-License-Identifier: Apache-2.0
   */
 
 +#include "zephyr/xen/events.h"
 +#define SHAREDMEM_BASE 0x6000000
-+#define SLEEPTIME 5000
++#define SLEEPTIME 50000
  #include <zephyr/kernel.h>
  
  void main(void)
@@ -20,11 +20,10 @@ index 9a90c6a6a0..47d73bd6e7 100644
 +	*ptr = 0;
  	printk("Hello World! %s\n", CONFIG_BOARD);
 +	printk("Memory initialized: %p => %d !\n", ptr, *ptr);
-+	k_msleep(SLEEPTIME*10);
 +	while (1){
-+		// printk("%s: Hello automotive team! Shared memory %p value: %d \n",
-+		//		CONFIG_BOARD, ptr, *ptr);
-+		(*ptr)++;
++		printk("%s: Hello automotive team! Shared memory %p value: %d \n",
++				CONFIG_BOARD, ptr, *ptr);
++		//(*ptr)++;
 +		k_msleep(SLEEPTIME);
 +	}
  }
