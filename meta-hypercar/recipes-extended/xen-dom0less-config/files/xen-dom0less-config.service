@@ -1,0 +1,17 @@
+[Unit]
+Description=Xen dom0less config service - map block devices to DomUs
+Requires=proc-xen.mount xenstored.service
+After=proc-xen.mount xenstored.service xenconsoled.service xen-init-dom0.service
+After=network-online.target
+After=remote-fs.target
+ConditionPathExists=/proc/xen/capabilities
+Conflicts=libvirtd.service
+
+[Service]
+Type=oneshot
+RemainAfterExit=true
+ExecStartPre=/bin/grep -q control_d /proc/xen/capabilities
+ExecStart=-/usr/bin/xen-hypercar-dom0less.sh
+
+[Install]
+WantedBy=multi-user.target
