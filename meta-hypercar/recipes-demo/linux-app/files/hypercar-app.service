@@ -1,0 +1,8 @@
+[Unit]
+Description=Start HyperCar POSIX app
+
+[Service]
+ExecStart=/bin/bash /usr/bin/hypercar-wrapper.sh
+
+[Install]
+WantedBy=multi-user.target

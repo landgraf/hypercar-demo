@@ -1,4 +1,4 @@
 part none --source bootimg-partition --ondisk=vda --fstype=vfat --label boot --active --align 4096 --fixed-size 512
-part /     --source rootfs --ondisk=vda --fstype=ext4 --label dom0root  --align 4096 --fixed-size 2048 --exclude-path data/ --exclude-path boot/
-part none --source rootfs --ondisk=xvda --fstype=ext4 --label dom0root  --align 4096 --fixed-size 2048 --exclude-path data/ --exclude-path boot/
-part none --source rootfs --ondisk=xvda --fstype=ext4 --label dom0root  --align 4096 --fixed-size 2048 --exclude-path data/ --exclude-path boot/
+part /     --source rootfs --ondisk=vda --fstype=ext4 --label dom-0-root  --align 4096 --fixed-size 2048 --exclude-path data/ --exclude-path boot/
+part none --source rootfs --ondisk=xvda --fstype=ext4 --label dom-2-root  --align 4096 --fixed-size 2048 --exclude-path data/ --exclude-path boot/
+part none --source rootfs --ondisk=xvda --fstype=ext4 --label dom-3-root  --align 4096 --fixed-size 2048 --exclude-path data/ --exclude-path boot/
