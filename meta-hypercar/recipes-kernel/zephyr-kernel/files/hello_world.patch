@@ -33,7 +33,7 @@ index 9a90c6a6a0..47d73bd6e7 100644
 +		       printk("RTOS: Domain %d is alive! \n", i);
 +		    };
 +		    if (prev != current && prev + 1 != current){
-+		       printk(" RTOS: ALERT! ALERT! ALERT! DomU%d misbehave, kill it!  \n ", i, prev, current);
++		       printk(" RTOS: ALERT! ALERT! ALERT! DomU%d misbehave, restart it!  \n ", i, prev, current);
 +		    };
 +		    last[i] = current;
 +		}
