@@ -19,7 +19,7 @@ index 9a90c6a6a0..47d73bd6e7 100644
 +       int last[DOMNUM];
 +	ptr = SHAREDMEM_BASE;
 +       printk("Pointer ready to use!\n");
-+	for (int i=0; i<DOMNUM-3; i++){
++	for (int i=0; i<DOMNUM; i++){
 +	    (*ptr)[i]=0;
 +           last[i] = 0;
 +	}
