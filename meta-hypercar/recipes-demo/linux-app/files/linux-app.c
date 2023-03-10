@@ -8,6 +8,9 @@
 #include <sys/mman.h>
 #include <ctype.h>
 #include <errno.h>
+#include <string.h>
+#include <stdbool.h>
+
 #define INTERVAL 1000   /* number of milliseconds to go off */
 #define DOMNUM 10
 #define MS2S(x) x / 1000
@@ -26,6 +29,7 @@ void increase_counter(void);
 #endif
 
 static int _shmem_fd = -1;
+const char *pre = "hypercardomU=";
 
 int shmem_open(void){
   _shmem_fd = open("/dev/xen_mem", 0);
@@ -41,25 +45,44 @@ void *shmem_mmap(size_t length){
 }
 
 
+bool is_hypercar_domu(const char *str)
+{
+  return strncmp(pre, str, strlen(pre)) == 0;
+}
+
+int get_dom_id(){
+  char *line;
+  const char *prefix = "hypercardomU=";
+  size_t len = 0;
+  char *endptr;
+  size_t read = 0;
+  FILE *fp = fopen("/proc/cmdline", "r");
+  if (NULL == fp){
+    perror("Unable to open cmdline for reading");
+    exit(EXIT_FAILURE);
+  };
+  while (-1 != (read = getline(&line, &len, fp))){
+    for (int p=0; p < len; p++){
+      line++;
+      if (is_hypercar_domu(line)){
+	int domain = atoi(&line[strlen(pre)]);
+	if (domain > 9 || domain < 0){
+	  perror("Domain ID must be in the range 0..9!");
+	  exit(EXIT_FAILURE);
+	};
+	return domain;
+      };
+    };
+  };
+}
 
 int main(int argc, char *argv[]) {
-  char *endptr;
-  struct itimerval it_val;  /* for setting itimer */
-  if (argc!=2){
-    perror("Usage: ./hypercar-app <domain-id>");
-    exit(EXIT_FAILURE);
-  }
-  errno = 0;
-  domain = strtol(argv[1], &endptr, 10);
-  if (errno != 0){
-    perror("Domain ID must be an integer [0-9]");
-    exit(EXIT_FAILURE);
-  };
-  if (domain > 9 || domain < 0){
-    perror("Domain ID must be in the range 0..9!");
-    exit(EXIT_FAILURE);
-  };
 
+  struct itimerval it_val;  /* for setting itimer */
+
+  domain = get_dom_id();
+  
+  printf("Hypercar App is running on domain %d \n", domain);
   if (shmem_open() == -1){
     perror("Failed to open shared memory device /dev/xen_mem");
   }

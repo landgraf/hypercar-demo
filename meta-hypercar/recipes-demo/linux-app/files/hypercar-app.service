@@ -2,7 +2,7 @@
 Description=Start HyperCar POSIX app
 
 [Service]
-ExecStart=/bin/bash /usr/bin/hypercar-wrapper.sh
+ExecStart=/usr/bin/hypercar-app
 
 [Install]
 WantedBy=multi-user.target
