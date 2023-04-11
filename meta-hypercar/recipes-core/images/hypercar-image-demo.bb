@@ -10,4 +10,5 @@ EXTRA_IMAGE_FEATURES:append = " ssh-server-dropbear"
 EXTRA_IMAGE_FEATURES:remove = " package-management"
 
 PACKAGECONFIG:pn-networkmanager:remove =" ${@bb.utils.contains('MACHINE_FEATURES', 'wifi' ' ifupdown dnsmasq ', '', d}}"
-COMPATIBLE_MACHINE = "qemuarm64"
+COMPATIBLE_MACHINE = "qemuarm64 raspberrypi4-64"
+COMPATIBLE_MACHINE:raspberrypi4-64 = "raspberrypi4-64$"
