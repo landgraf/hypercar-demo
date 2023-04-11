@@ -11,6 +11,7 @@ inherit deploy
 inherit native
 ## FIXME ugly!
 
+
 HYPERCAR_DOMS ?= " "
 MACHINE_DTB_PROVIDER ?= " "
 DOM_DEPLOY ?= "${@' '.join([ dom + ':do_deploy' for dom in d.getVar('HYPERCAR_DOMS').split()])}"

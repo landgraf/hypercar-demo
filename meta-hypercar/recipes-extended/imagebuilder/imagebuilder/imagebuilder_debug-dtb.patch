@@ -1,0 +1,12 @@
+diff --git a/scripts/uboot-script-gen b/scripts/uboot-script-gen
+index 9656a45..586f329 100755
+--- a/scripts/uboot-script-gen
++++ b/scripts/uboot-script-gen
+@@ -1316,6 +1316,7 @@ load_file $DEVICE_TREE "host_fdt"
+ bitstream_load_and_config  # bitstream is loaded last but used first
+ device_tree_editing $device_tree_addr
+ 
++echo "fdt print /chosen" >> $UBOOT_SOURCE
+ # disable device tree reloation
+ echo "setenv fdt_high 0xffffffffffffffff" >> $UBOOT_SOURCE
+ 
