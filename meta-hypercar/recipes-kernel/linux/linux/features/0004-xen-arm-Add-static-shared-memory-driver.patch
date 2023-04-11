@@ -50,13 +50,13 @@ index a65bd92121a5..4289b774cc14 100644
 +
  endmenu
 diff --git a/drivers/xen/Makefile b/drivers/xen/Makefile
-index c0503f1c7d5b..a8f3ed302ab3 100644
+index 3434593455b2..a20520b1d89f 100644
 --- a/drivers/xen/Makefile
 +++ b/drivers/xen/Makefile
-@@ -41,3 +41,4 @@ obj-$(CONFIG_XEN_FRONT_PGDIR_SHBUF)	+= xen-front-pgdir-shbuf.o
+@@ -39,3 +39,4 @@ xen-gntalloc-y				:= gntalloc.o
+ xen-privcmd-y				:= privcmd.o privcmd-buf.o
+ obj-$(CONFIG_XEN_FRONT_PGDIR_SHBUF)	+= xen-front-pgdir-shbuf.o
  obj-$(CONFIG_XEN_UNPOPULATED_ALLOC)	+= unpopulated-alloc.o
- obj-$(CONFIG_XEN_GRANT_DMA_OPS)		+= grant-dma-ops.o
- obj-$(CONFIG_XEN_GRANT_DMA_IOMMU)	+= grant-dma-iommu.o
 +obj-${CONFIG_XEN_SHARED_MEMORY}		+= shared-memory.o
 diff --git a/drivers/xen/shared-memory.c b/drivers/xen/shared-memory.c
 new file mode 100644
