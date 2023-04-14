@@ -2,7 +2,8 @@ SUMMARY="boot.scr generator for qemu arm hypercar demo"
 DESCRIPTION = "${SUMMARY}"
 
 LICENSE = "MIT"
-SRC_URI = "file://imagebuilder.conf"
+SRC_URI:append:qemuarm64-xen-uboot = "file://imagebuilder-qemu.conf"
+SRC_URI:append:raspberrypi4-64 = "file://imagebuilder-rpi.conf"
 LIC_FILES_CHKSUM = "file://${COMMON_LICENSE_DIR}/MIT;md5=0835ade698e0bcf8506ecda2f7b4f302"
 
 DEPENDS = "xen ${MACHINE_DTB_PROVIDER} imagebuilder-native u-boot-mkimage-native dtc-native" 

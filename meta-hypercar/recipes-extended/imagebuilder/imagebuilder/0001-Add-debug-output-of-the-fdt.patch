@@ -1,5 +1,15 @@
+From 9cdb1903b2e19117a36c4cc127878799065cf5c8 Mon Sep 17 00:00:00 2001
+From: Pavel Zhukov <pavel@zhukoff.net>
+Date: Thu, 13 Apr 2023 14:56:37 +0200
+Subject: [PATCH 1/2] Add debug output of the fdt
+Cc: pavel@zhukoff.net
+
+---
+ scripts/uboot-script-gen | 1 +
+ 1 file changed, 1 insertion(+)
+
 diff --git a/scripts/uboot-script-gen b/scripts/uboot-script-gen
-index 9656a45..586f329 100755
+index 9656a45..765723a 100755
 --- a/scripts/uboot-script-gen
 +++ b/scripts/uboot-script-gen
 @@ -1316,6 +1316,7 @@ load_file $DEVICE_TREE "host_fdt"
@@ -10,3 +20,6 @@ index 9656a45..586f329 100755
  # disable device tree reloation
  echo "setenv fdt_high 0xffffffffffffffff" >> $UBOOT_SOURCE
  
+-- 
+2.39.2
+

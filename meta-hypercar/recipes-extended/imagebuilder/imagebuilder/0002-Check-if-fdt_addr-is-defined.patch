@@ -1,0 +1,34 @@
+From d8a365f761ed78eb933cf88b34fabbcfcf46721c Mon Sep 17 00:00:00 2001
+From: Pavel Zhukov <pavel@zhukoff.net>
+Date: Thu, 13 Apr 2023 14:56:14 +0200
+Subject: [PATCH 2/2] Check if fdt_addr is defined
+Cc: pavel@zhukoff.net
+
+---
+ scripts/uboot-script-gen | 3 ++-
+ 1 file changed, 2 insertions(+), 1 deletion(-)
+
+diff --git a/scripts/uboot-script-gen b/scripts/uboot-script-gen
+index 765723a..c0dd123 100755
+--- a/scripts/uboot-script-gen
++++ b/scripts/uboot-script-gen
+@@ -409,6 +409,7 @@ function device_tree_editing()
+ 
+     if test $UBOOT_SOURCE
+     then
++	echo 'test -n "${fdt_addr}" && fdt addr ${fdt_addr} || ' "fdt addr $device_tree_addr" >> $UBOOT_SOURCE
+         echo "fdt addr $device_tree_addr" >> $UBOOT_SOURCE
+         echo "fdt resize 1024" >> $UBOOT_SOURCE
+ 
+@@ -1312,7 +1313,7 @@ fi
+ 
+ check_file_type $DEVICE_TREE "Device Tree Blob"
+ device_tree_addr=$memaddr
+-load_file $DEVICE_TREE "host_fdt"
++test -n "$DEVICE_TREE" && load_file $DEVICE_TREE "host_fdt"
+ bitstream_load_and_config  # bitstream is loaded last but used first
+ device_tree_editing $device_tree_addr
+ 
+-- 
+2.39.2
+

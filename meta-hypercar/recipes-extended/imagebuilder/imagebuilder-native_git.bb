@@ -13,8 +13,10 @@ LIC_FILES_CHKSUM = "file://LICENSE;md5=d2794c0df5b907fdace235a619d80314"
 SRC_URI = "git://gitlab.com/ViryaOS/imagebuilder.git;protocol=https;branch=master \
 	   file://add_static_heap.patch \
 	   file://add_static_shared_memory.patch \
-	   file://imagebuilder_debug-dtb.patch \
+	   file://0001-Add-debug-output-of-the-fdt.patch \
 	  "
+
+SRC_URI:append:raspberrypi4-64 = "file://0002-Check-if-fdt_addr-is-defined.patch"
 
 S="${WORKDIR}/git"
 
