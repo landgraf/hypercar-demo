@@ -1,25 +1,27 @@
-From d8a365f761ed78eb933cf88b34fabbcfcf46721c Mon Sep 17 00:00:00 2001
+From a5867da0031021aed4639cbb56f1ca4861e8f855 Mon Sep 17 00:00:00 2001
 From: Pavel Zhukov <pavel@zhukoff.net>
 Date: Thu, 13 Apr 2023 14:56:14 +0200
 Subject: [PATCH 2/2] Check if fdt_addr is defined
 Cc: pavel@zhukoff.net
 
 ---
- scripts/uboot-script-gen | 3 ++-
- 1 file changed, 2 insertions(+), 1 deletion(-)
+ scripts/uboot-script-gen | 7 ++++---
+ 1 file changed, 4 insertions(+), 3 deletions(-)
 
 diff --git a/scripts/uboot-script-gen b/scripts/uboot-script-gen
-index 765723a..c0dd123 100755
+index 765723a..db5f747 100755
 --- a/scripts/uboot-script-gen
 +++ b/scripts/uboot-script-gen
-@@ -409,6 +409,7 @@ function device_tree_editing()
+@@ -409,7 +409,8 @@ function device_tree_editing()
  
      if test $UBOOT_SOURCE
      then
-+	echo 'test -n "${fdt_addr}" && fdt addr ${fdt_addr} || ' "fdt addr $device_tree_addr" >> $UBOOT_SOURCE
-         echo "fdt addr $device_tree_addr" >> $UBOOT_SOURCE
+-        echo "fdt addr $device_tree_addr" >> $UBOOT_SOURCE
++	echo 'test -n "${fdt_addr}" && setenv device_tree_addr ${fdt_addr} || sentenv device_tree_addr' "${device_tree_addr}" >> $UBOOT_SOURCE
++	echo 'fdt addr ${device_tree_addr}' >> $UBOOT_SOURCE
          echo "fdt resize 1024" >> $UBOOT_SOURCE
  
+         if test $NUM_DT_OVERLAY && test $NUM_DT_OVERLAY -gt 0
 @@ -1312,7 +1313,7 @@ fi
  
  check_file_type $DEVICE_TREE "Device Tree Blob"
@@ -29,6 +31,15 @@ index 765723a..c0dd123 100755
  bitstream_load_and_config  # bitstream is loaded last but used first
  device_tree_editing $device_tree_addr
  
+@@ -1329,7 +1330,7 @@ fi
+ 
+ if [ "$BOOT_CMD" != "none" ]
+ then
+-    echo "$BOOT_CMD $kernel_addr - $device_tree_addr" >> $UBOOT_SOURCE
++    echo "$BOOT_CMD $kernel_addr" '- ${device_tree_addr}' >> $UBOOT_SOURCE
+ else
+     # skip boot command but store load addresses to be used later
+     echo "setenv host_kernel_addr $kernel_addr" >> $UBOOT_SOURCE
 -- 
 2.39.2
 

@@ -1,4 +1,4 @@
-From 9cdb1903b2e19117a36c4cc127878799065cf5c8 Mon Sep 17 00:00:00 2001
+From 032f362d9a3c11aa2db27114bf9543283d30d3d1 Mon Sep 17 00:00:00 2001
 From: Pavel Zhukov <pavel@zhukoff.net>
 Date: Thu, 13 Apr 2023 14:56:37 +0200
 Subject: [PATCH 1/2] Add debug output of the fdt
