@@ -2,14 +2,13 @@ SUMMARY="boot.scr generator for qemu arm hypercar demo"
 DESCRIPTION = "${SUMMARY}"
 
 LICENSE = "MIT"
-SRC_URI:append:qemuarm64-xen-uboot = "file://imagebuilder-qemu.conf"
-SRC_URI:append:raspberrypi4-64 = "file://imagebuilder-rpi.conf"
+
+SRC_URI = "file://imagebuilder.conf"
 LIC_FILES_CHKSUM = "file://${COMMON_LICENSE_DIR}/MIT;md5=0835ade698e0bcf8506ecda2f7b4f302"
 
 DEPENDS = "xen ${MACHINE_DTB_PROVIDER} imagebuilder-native u-boot-mkimage-native dtc-native" 
-
+PROVIDES = "u-boot-default-script"
 inherit deploy
-inherit native
 ## FIXME ugly!
 
 
@@ -33,7 +32,11 @@ do_compile[depends] += "${PN}:do_unpack \
 deltask do_configure
 deltask do_install
 
-do_compile(){
+do_compile:raspberrypi4-64(){
+	${STAGING_DIR_NATIVE}/usr/libexec/imagebuilder/uboot-script-gen -c ${WORKDIR}/imagebuilder.conf -d ${DEPLOY_DIR_IMAGE} -t "load mmc 1:1" -o ${WORKDIR}/boot
+}
+
+do_compile:qemuarm64-xen-uboot(){
 	${STAGING_DIR_NATIVE}/usr/libexec/imagebuilder/uboot-script-gen -c ${WORKDIR}/imagebuilder.conf -d ${DEPLOY_DIR_IMAGE} -t virtio -o ${WORKDIR}/boot
 }
 
