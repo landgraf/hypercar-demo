@@ -45,4 +45,7 @@ do_deploy(){
         install -D -m 0644 ${WORKDIR}/boot.source ${DEPLOYDIR}/boot.source
 }
 
+do_deploy[depends] += "${DTB_DEPLOY}"
+
+
 addtask do_deploy after do_compile before do_build
