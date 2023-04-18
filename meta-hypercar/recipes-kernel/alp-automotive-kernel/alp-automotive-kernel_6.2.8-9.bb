@@ -3,13 +3,14 @@ inherit bin_package
 ## TODO: proper osc/ibs fetcher is needed here
 
 ## SRC_URI = "ibs://<projectname>/<package_name>" ?
-SRC_URI = "https://download.opensuse.org/repositories/home:/pazhukov:/hypercar-kernel:/hypercar-kernel-sources/ARM/aarch64/kernel-default-6.2.8-9.1.g99f564f.aarch64.rpm;subdir=${BP}"
+IBS_RELEASE = "1"
+IBS_HASH = "g99f564f"
+SRC_URI = "https://download.opensuse.org/repositories/home:/pazhukov:/hypercar-kernel:/hypercar-kernel-sources/ARM/aarch64/kernel-default-${PV}.${IBS_RELEASE}.${IBS_HASH}.aarch64.rpm;subdir=${BP}"
 LICENSE="GPL-2.0-only"
 SRC_URI[sha256sum] = "9f702630753ed33eade59bfa9293b231d288435b055352c5fd45a6294eba5700"
 DEPENDS = "bzip2"
 LIC_FILES_CHKSUM = "file://${COREBASE}/meta/files/common-licenses/GPL-2.0-only;md5=801f80980d171dd6425610833a22dbe6"
 
-IBS_VERSION = "6.2.8-9.g99f564f-default"
 PROVIDES = "virtual/kernel"
 
 
@@ -49,7 +50,7 @@ do_shared_workdir () {
 }
 
 do_install() {
-	install -D -m 0755 ${S}/usr/lib/modules/${IBS_VERSION}/Image ${D}/boot/Image
+	install -D -m 0755 ${S}/usr/lib/modules/${PV}.${IBS_HASH}-default/Image ${D}/boot/Image
 	:
 }
 
