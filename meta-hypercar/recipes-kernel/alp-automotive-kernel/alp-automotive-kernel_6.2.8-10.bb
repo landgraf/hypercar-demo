@@ -19,7 +19,7 @@ inherit deploy
 PACKAGES_DYNAMIC += "^kernel-module-.*"
 PACKAGES_DYNAMIC += "^kernel-image-.*"
 PACKAGES_DYNAMIC += "^kernel-firmware-.*"
-
+KERNEL_MODULE_AUTOLOAD += " softdog"
 PACKAGES += "kernel-modules kernel-vmlinux"
 FILES:kernel-modules = ""
 ALLOW_EMPTY:kernel-modules = "1"
@@ -70,6 +70,6 @@ addtask compile_kernelmodules
 
 pkg_postinst_ontarget:${PN}(){
       depmod -a
-      grep -q control_d /proc/xen/capabilities && reboot
+      grep -q control_d /proc/xen/capabilities && reboot || echo softdog > /etc/modules-load.d/softdog.conf
 }
 

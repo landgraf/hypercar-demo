@@ -1,3 +1,5 @@
+#include <sys/ioctl.h>
+
 #include <stdio.h>
 #include <stdlib.h>
 #include <sys/time.h>   /* for setitimer */
@@ -10,12 +12,13 @@
 #include <errno.h>
 #include <string.h>
 #include <stdbool.h>
+#include <linux/watchdog.h>
 
 #define INTERVAL 1000   /* number of milliseconds to go off */
 #define DOMNUM 10
 #define MS2S(x) x / 1000
 #define MS2US(x) (x * 1000) % 1000000
-
+#define WATCHDOG_DEV "/dev/watchdog"
 /* global 8-bit counter */
 /* This counter must be somehow communicated to RTOS! */
 int *counter;
@@ -30,7 +33,7 @@ void increase_counter(void);
 
 static int _shmem_fd = -1;
 const char *pre = "hypercardomU=";
-
+static int watchdog_fd;
 int shmem_open(void){
   _shmem_fd = open("/dev/xen_mem", 0);
   return _shmem_fd;
@@ -89,6 +92,17 @@ int main(int argc, char *argv[]) {
   if ((counter = shmem_mmap(10*sizeof(counter))) == MAP_FAILED){
     perror("Failed to map shared memory counter");
   }
+  watchdog_fd = open(WATCHDOG_DEV, O_WRONLY);
+  if (watchdog_fd == -1) {
+    perror("Failed to open watchdog device");
+    return 1;
+  }
+  int timeout = 2; // 2 seconds
+    if (ioctl(watchdog_fd, WDIOC_SETTIMEOUT, &timeout) == -1) {
+        perror("Failed to set watchdog timeout");
+        close(watchdog_fd);
+        return 1;
+    }
   counter+=domain;
   /* Upon SIGALRM, increase counter by */
   if (signal(SIGALRM, (void (*)(int)) increase_counter) == SIG_ERR) {
@@ -116,5 +130,7 @@ void increase_counter(void)
   /* Inject an error at value 100 */
   if (*counter > 100 && *counter%100 < 10) {
     (*counter)++;
+    return;
   }
+  write(watchdog_fd, "\0", 1); // Send a heartbeat to the watchdog	      
 }
