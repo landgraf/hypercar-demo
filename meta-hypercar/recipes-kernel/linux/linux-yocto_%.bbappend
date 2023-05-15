@@ -4,6 +4,7 @@ SRC_URI:append = " file://xen.cfg \
 		   file://timers.cfg \
 		   file://dmiid.cfg"
 
+SRC_URI:append:raspberrypi4-64 = " file://rpi.cfg "
 COMPATIBLE_MACHINE:append:qemuarm64-xen-efi =  "^qemuarm64-xen-efi$"
 COMPATIBLE_MACHINE:append:qemuarm64-xen-uboot =  "^qemuarm64-xen-uboot$"
 
