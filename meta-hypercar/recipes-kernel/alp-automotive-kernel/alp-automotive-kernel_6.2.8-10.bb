@@ -11,42 +11,8 @@ SRC_URI[sha256sum] = "f4d1ad6585d883ebcd82d56aa1058a291261eb8b7d8ca4dce949eb4f0e
 DEPENDS = "bzip2"
 LIC_FILES_CHKSUM = "file://${COREBASE}/meta/files/common-licenses/GPL-2.0-only;md5=801f80980d171dd6425610833a22dbe6"
 
-PROVIDES = "virtual/kernel"
-KERNEL_PACKAGE_NAME="${PN}"
 
 inherit deploy
-## part below has been copyied over from linux-dummy recipe
-PACKAGES_DYNAMIC += "^kernel-module-.*"
-PACKAGES_DYNAMIC += "^kernel-image-.*"
-PACKAGES_DYNAMIC += "^kernel-firmware-.*"
-KERNEL_MODULE_AUTOLOAD += " softdog"
-PACKAGES += "kernel-modules kernel-vmlinux"
-FILES:kernel-modules = ""
-ALLOW_EMPTY:kernel-modules = "1"
-DESCRIPTION:kernel-modules = "Kernel modules meta package"
-FILES:kernel-vmlinux = ""
-ALLOW_EMPTY:kernel-vmlinux = "1"
-DESCRIPTION:kernel-vmlinux = "Kernel vmlinux meta package"
-
-INHIBIT_DEFAULT_DEPS = "1"
-
-COMPATIBLE_HOST = ".*-linux"
-
-do_configure() {
-	:
-}
-
-do_compile () {
-	:
-}
-
-do_compile_kernelmodules() {
-    :
-}
-
-do_shared_workdir () {
-	:
-}
 
 do_install() {
 	cp -r ${S}/* ${D}/
@@ -54,22 +20,14 @@ do_install() {
 	:
 }
 
-do_bundle_initramfs() {
-	:
-}
-
 do_deploy() {
-	install -D -m 0755 ${D}/boot/Image  ${DEPLOYDIR}/Image
+	install -D -m 0755 ${D}/boot/Image  ${DEPLOYDIR}/Image-alp
 	:
 }
-
-addtask bundle_initramfs after do_install before do_deploy
-addtask deploy after do_install
-addtask shared_workdir after do_compile before do_install
-addtask compile_kernelmodules
 
 pkg_postinst_ontarget:${PN}(){
       depmod -a
       grep -q control_d /proc/xen/capabilities && reboot || echo softdog > /etc/modules-load.d/softdog.conf
 }
 
+addtask do_deploy after do_install before do_build

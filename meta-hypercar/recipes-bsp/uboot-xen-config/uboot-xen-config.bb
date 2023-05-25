@@ -22,6 +22,7 @@ do_compile[depends] += "${PN}:do_unpack \
 			xen:do_deploy \
 		        imagebuilder-native:do_populate_sysroot \
 		        u-boot-mkimage-native:do_populate_sysroot \
+			alp-automotive-kernel:do_deploy \
 			${DOM_DEPLOY} \
 			${DTB_DEPLOY} \
 			"
