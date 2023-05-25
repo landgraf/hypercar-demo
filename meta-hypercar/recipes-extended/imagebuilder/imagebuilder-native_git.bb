@@ -15,6 +15,7 @@ SRC_URI = "git://gitlab.com/ViryaOS/imagebuilder.git;protocol=https;branch=maste
 	   file://add_static_shared_memory.patch \
 	   file://0001-Add-debug-output-of-the-fdt.patch \
 	   file://0002-Check-if-fdt_addr-is-defined.patch \
+	   file://0001-Allow-delay-for-rpi-mmcblk0.patch \
 	   "
 
 S="${WORKDIR}/git"
