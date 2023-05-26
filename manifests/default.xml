@@ -20,7 +20,7 @@ SPDX-FileCopyrightText: <pavel@zhukoff.net>
 	<project name="openembedded-core" remote="openembedded" revision="f4a4de1dc3521695c14dfc206fa4cd0e10c250aa" path="core" />
 	<project name="meta-openembedded" remote="openembedded" revision="1b7380bc0fb523f0cbc2df853846a2dcfebfb2b3" path="meta-openembedded" />
 	<project name="lgirdk/meta-virtualization.git" remote="github" revision="48c07a48a0e7d56266f20a01bb0c8ebc1085453b" path="meta-virtualization" />
-	<project name="agherzan/meta-raspberrypi" remote="github" revision="15206a15b42a1be8efd96aad3af420384b2ef536" path="meta-raspberrypi" />
+	<project name="agherzan/meta-raspberrypi" remote="github" revision="9240ea91caaf82501b80af7bfc94673a3dfdaae5" path="meta-raspberrypi" />
 	<!-- Meta zephyr is known for deleting revs from the master -->
 	<project name="saininav/meta-zephyr.git" remote="github" revision="1312cb2a1932bde47fa099e6ea657e2297e985d2" path="meta-zephyr" />
 	<project name="jonmason/meta-arm.git" remote="github" revision="3af64cee5bf963359e1aa304e55ff673b07f0294" path="meta-arm" />
