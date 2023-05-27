@@ -1,9 +1,12 @@
 FILESEXTRAPATHS:prepend := "${THISDIR}/linux/:"
-SRC_URI:append = " file://xen-hypercar.cfg \
-	       	   file://systemd.cfg \
-		   file://timers.cfg \
-		   file://dmiid.cfg"
+SRC_URI:append = "                         \
+	       	   file://systemd.cfg      \
+		   file://timers.cfg       \
+		   file://dmiid.cfg        \
+		   file://xen-hypercar.cfg \
+		 "
 
+## disablebt should be replaced with proper disabling using devicetree/overlay
 SRC_URI:append:raspberrypi4-64 = " file://rpi-hypercar.cfg"
 
 
