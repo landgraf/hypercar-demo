@@ -7,7 +7,7 @@ SRC_URI:append = "                         \
 		 "
 
 ## disablebt should be replaced with proper disabling using devicetree/overlay
-SRC_URI:append:raspberrypi4-64 = " file://rpi-hypercar.cfg"
+SRC_URI:append:raspberrypi4-64 = " file://rpi-hypercar.cfg "
 
 
 COMPATIBLE_MACHINE:append:qemuarm64-xen-efi =  "^qemuarm64-xen-efi$"

@@ -34,7 +34,8 @@ deltask do_configure
 deltask do_install
 
 do_compile:raspberrypi4-64(){
-	${STAGING_DIR_NATIVE}/usr/libexec/imagebuilder/uboot-script-gen -c ${WORKDIR}/imagebuilder.conf -d ${DEPLOY_DIR_IMAGE} -t "load mmc 1:1" -o ${WORKDIR}/boot
+        sed -i 's/@MMCBLKDEVICE_NUMBER@/${MMCBLKDEVICE_NUMBER}/' ${WORKDIR}/imagebuilder.conf
+	${STAGING_DIR_NATIVE}/usr/libexec/imagebuilder/uboot-script-gen -c ${WORKDIR}/imagebuilder.conf -d ${DEPLOY_DIR_IMAGE} -t "load mmc ${MMCBLKDEVICE_NUMBER}:1" -o ${WORKDIR}/boot
 }
 
 do_compile:qemuarm64-xen-uboot(){

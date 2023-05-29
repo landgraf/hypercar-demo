@@ -1,0 +1,35 @@
+From ed55f72b2de8fa2265d092d9d25903e65c1618f9 Mon Sep 17 00:00:00 2001
+From: =?UTF-8?q?Mart=C3=AD=20Bol=C3=ADvar?= <marti.bolivar@nordicsemi.no>
+Date: Fri, 24 Feb 2023 11:34:35 -0800
+Subject: [PATCH] devicetree: fix DT_PROP_HAS_NAME doxygen example
+MIME-Version: 1.0
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8bit
+Cc: pavel@zhukoff.net
+
+The node identifier is missing a DT_NODELABEL() around the node label.
+
+Signed-off-by: Martí Bolívar <marti.bolivar@nordicsemi.no>
+(cherry picked from commit 2bf1ce913767a4b206a5edc900c0acea59dd8f41)
+---
+ include/zephyr/devicetree.h | 4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
+
+diff --git a/include/zephyr/devicetree.h b/include/zephyr/devicetree.h
+index 98867ec9768..ea732dc294d 100644
+--- a/zephyr/include/zephyr/devicetree.h
++++ b/zephyr/include/zephyr/devicetree.h
+@@ -699,8 +699,8 @@
+  * Example usage:
+  *
+  * @code{.c}
+- *     DT_PROP_HAS_NAME(nx, foos, event)    // 1
+- *     DT_PROP_HAS_NAME(nx, foos, failure)  // 0
++ *     DT_PROP_HAS_NAME(DT_NODELABEL(nx), foos, event)    // 1
++ *     DT_PROP_HAS_NAME(DT_NODELABEL(nx), foos, failure)  // 0
+  * @endcode
+  *
+  * @param node_id node identifier
+-- 
+2.39.3
+
