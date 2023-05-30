@@ -44,6 +44,7 @@ do_compile:qemuarm64-xen-uboot(){
 
 do_deploy(){
         install -D -m 0644 ${WORKDIR}/boot.scr ${DEPLOYDIR}/boot.scr
+	touch ${DEPLOYDIR}/${PN}-${PV}.stamp
         install -D -m 0644 ${WORKDIR}/boot.source ${DEPLOYDIR}/boot.source
 }
 
