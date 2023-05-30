@@ -1,0 +1,112 @@
+From 0e35ef6aefbf29730d15a41ce7197a2c2e963825 Mon Sep 17 00:00:00 2001
+From: Hongda Deng <Hongda.Deng@arm.com>
+Date: Mon, 14 Nov 2022 17:42:03 +0800
+Subject: [PATCH 3/4] xen/arm: Introduce "xen,shared-info" property
+
+Introduce a new "xen,shared-info" property for information sharing
+between xen and guest in xen,dom0less system.
+
+Issue-Id: SCM-4659
+Signed-off-by: Penny Zheng <penny.zheng@arm.com>
+Signed-off-by: Hongda Deng <Hongda.Deng@arm.com>
+Change-Id: I173d3c08476a094640721c930c8f8380f95cdb90
+Upstream-Status: Inappropriate [other]
+  Implementation pending further discussion
+Signed-off-by: Robbie Cao <robbie.cao@arm.com>
+---
+ arch/arm/xen/enlighten.c | 49 ++++++++++++++++++++++++++++++++--------
+ 1 file changed, 39 insertions(+), 10 deletions(-)
+
+diff --git a/arch/arm/xen/enlighten.c b/arch/arm/xen/enlighten.c
+index 674fbcd28575..e157a9d2a8d6 100644
+--- a/arch/arm/xen/enlighten.c
++++ b/arch/arm/xen/enlighten.c
+@@ -217,6 +217,7 @@ static __initdata struct {
+ 	const char *version;
+ 	bool found;
+ 	bool dom0less;
++	u64 shared_info_addr;
+ } hyper_node = {"xen,xen", "xen,xen-", NULL, false};
+ 
+ static int __init fdt_find_hyper_node(unsigned long node, const char *uname,
+@@ -224,6 +225,7 @@ static int __init fdt_find_hyper_node(unsigned long node, const char *uname,
+ {
+ 	const void *s = NULL;
+ 	int len;
++	const __be32 *prop;
+ 
+ 	if (depth != 1 || strcmp(uname, "hypervisor") != 0)
+ 		return 0;
+@@ -251,6 +253,18 @@ static int __init fdt_find_hyper_node(unsigned long node, const char *uname,
+ 
+ 	hyper_node.dom0less = of_get_flat_dt_prop(node, "xen,dom0less", NULL) != NULL;
+ 
++	if (is_dom0less_domain()) {
++		prop = of_get_flat_dt_prop(node, "xen,shared-info", NULL);
++		if (!prop) {
++			pr_info("Failed to find \"xen,shared-info\" prop.\n");
++			return -ENOENT;
++		}
++		hyper_node.shared_info_addr = of_read_number(prop, 2);
++		pr_info("The physical address of \"xen,shared-info\" is %llx.",
++			hyper_node.shared_info_addr);
++	}
++
++
+ 	return 0;
+ }
+ 
+@@ -452,6 +466,7 @@ static int __init xen_guest_init(void)
+ 	struct xen_add_to_physmap xatp;
+ 	struct shared_info *shared_info_page = NULL;
+ 	int rc, cpu;
++	struct resource r;
+ 
+ 	if (!xen_domain())
+ 		return 0;
+@@ -476,18 +491,32 @@ static int __init xen_guest_init(void)
+ 	if (efi_enabled(EFI_RUNTIME_SERVICES))
+ 		xen_efi_runtime_setup();
+ 
+-	shared_info_page = (struct shared_info *)get_zeroed_page(GFP_KERNEL);
++	if (!is_dom0less_domain()) {
++		shared_info_page =
++			(struct shared_info *)get_zeroed_page(GFP_KERNEL);
+ 
+-	if (!shared_info_page) {
+-		pr_err("not enough memory\n");
+-		return -ENOMEM;
++		if (!shared_info_page) {
++			pr_err("not enough memory\n");
++			return -ENOMEM;
++		}
++		xatp.domid = DOMID_SELF;
++		xatp.idx = 0;
++		xatp.space = XENMAPSPACE_shared_info;
++		xatp.gpfn = virt_to_gfn(shared_info_page);
++		if (HYPERVISOR_memory_op(XENMEM_add_to_physmap, &xatp))
++			BUG();
++	} else {
++		r.start = hyper_node.shared_info_addr;
++		r.end = hyper_node.shared_info_addr + PAGE_SIZE - 1;
++		r.flags = IORESOURCE_MEM;
++		r.name = "Xen shared info";
++
++		shared_info_page =
++			(struct shared_info *)memremap(r.start, resource_size(&r),
++					MEMREMAP_WB);
++		if (shared_info_page == NULL)
++			return -EFAULT;
+ 	}
+-	xatp.domid = DOMID_SELF;
+-	xatp.idx = 0;
+-	xatp.space = XENMAPSPACE_shared_info;
+-	xatp.gpfn = virt_to_gfn(shared_info_page);
+-	if (HYPERVISOR_memory_op(XENMEM_add_to_physmap, &xatp))
+-		BUG();
+ 
+ 	HYPERVISOR_shared_info = (struct shared_info *)shared_info_page;
+ 
+-- 
+2.25.1
+

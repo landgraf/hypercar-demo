@@ -1,0 +1,6 @@
+  /mnt/builds/hypercar/sources/meta-hypercar/dynamic-layers/raspberrypi/recipes-kernel:
+  total used in directory 16 available 140.1 GiB
+  drwxr-xr-x 3 pavel pavel 4096 May 30 09:01 .
+  drwxr-xr-x 4 pavel pavel 4096 May 30 09:01 ..
+  drwxr-xr-x 2 pavel pavel 4096 May 30 09:01 linux
+D -rw-r--r-- 1 pavel pavel  770 May 29 14:57 linux-raspberrypi_%.bbappend

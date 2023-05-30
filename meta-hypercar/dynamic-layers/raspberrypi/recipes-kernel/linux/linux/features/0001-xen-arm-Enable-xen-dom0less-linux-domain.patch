@@ -1,0 +1,267 @@
+From 5bfb1f9cbbd60877f4a1224866fbb511f131f9c1 Mon Sep 17 00:00:00 2001
+From: Hongda Deng <Hongda.Deng@arm.com>
+Date: Wed, 30 Nov 2022 15:28:15 +0800
+Subject: [PATCH 1/4] xen/arm: Enable xen,dom0less linux domain
+
+Add a new dom0less property in struct hyper_node which identificates
+whether this domain is a dom0less domain together with a helper function.
+Xenbus, xen grant table and xen tools are not yet supported in dom0less
+domain, skip their init processes if dom0less domain detected.
+
+Issue-Id: SCM-4659
+Signed-off-by: Penny Zheng <penny.zheng@arm.com>
+Signed-off-by: Hongda Deng <Hongda.Deng@arm.com>
+Change-Id: Ide913b01c369c450faa4d9279d8d5b5aff64240b
+Upstream-Status: Inappropriate [other]
+  Implementation pending further discussion
+Signed-off-by: Robbie Cao <robbie.cao@arm.com>
+---
+ arch/arm/xen/enlighten.c                   | 40 +++++++++++++++-------
+ drivers/xen/balloon.c                      |  3 ++
+ drivers/xen/cpu_hotplug.c                  |  3 ++
+ drivers/xen/grant-table.c                  |  3 ++
+ drivers/xen/manage.c                       |  4 +++
+ drivers/xen/xenbus/xenbus_dev_frontend.c   |  3 ++
+ drivers/xen/xenbus/xenbus_probe.c          |  5 +++
+ drivers/xen/xenbus/xenbus_probe_backend.c  |  3 ++
+ drivers/xen/xenbus/xenbus_probe_frontend.c |  6 ++++
+ include/xen/arm/hypervisor.h               |  1 +
+ 10 files changed, 58 insertions(+), 13 deletions(-)
+
+diff --git a/arch/arm/xen/enlighten.c b/arch/arm/xen/enlighten.c
+index 93c8ccbf2982..674fbcd28575 100644
+--- a/arch/arm/xen/enlighten.c
++++ b/arch/arm/xen/enlighten.c
+@@ -145,7 +145,7 @@ static int xen_starting_cpu(unsigned int cpu)
+ 	struct vcpu_info *vcpup;
+ 	int err;
+ 
+-	/* 
++	/*
+ 	 * VCPUOP_register_vcpu_info cannot be called twice for the same
+ 	 * vcpu, so if vcpu_info is already registered, just get out. This
+ 	 * can happen with cpu-hotplug.
+@@ -216,6 +216,7 @@ static __initdata struct {
+ 	const char *prefix;
+ 	const char *version;
+ 	bool found;
++	bool dom0less;
+ } hyper_node = {"xen,xen", "xen,xen-", NULL, false};
+ 
+ static int __init fdt_find_hyper_node(unsigned long node, const char *uname,
+@@ -248,9 +249,16 @@ static int __init fdt_find_hyper_node(unsigned long node, const char *uname,
+ 			set_bit(EFI_RUNTIME_SERVICES, &efi.flags);
+ 	}
+ 
++	hyper_node.dom0less = of_get_flat_dt_prop(node, "xen,dom0less", NULL) != NULL;
++
+ 	return 0;
+ }
+ 
++bool __init is_dom0less_domain(void)
++{
++	return hyper_node.dom0less == true;
++}
++
+ /*
+  * see Documentation/devicetree/bindings/arm/xen.txt for the
+  * documentation of the Xen Device Tree format.
+@@ -270,6 +278,10 @@ void __init xen_early_init(void)
+ 
+ 	pr_info("Xen %s support found\n", hyper_node.version);
+ 
++	if (hyper_node.dom0less) {
++		pr_info("Xen dom0less domain found\n");
++	}
++
+ 	xen_domain_type = XEN_HVM_DOMAIN;
+ 
+ 	xen_setup_features();
+@@ -481,7 +493,7 @@ static int __init xen_guest_init(void)
+ 
+ 	/* xen_vcpu is a pointer to the vcpu_info struct in the shared_info
+ 	 * page, we use it in the event channel upcall and in some pvclock
+-	 * related functions. 
++	 * related functions.
+ 	 * The shared info contains exactly 1 CPU (the boot CPU). The guest
+ 	 * is required to use VCPUOP_register_vcpu_info to place vcpu info
+ 	 * for secondary CPUs as they are brought up.
+@@ -495,18 +507,20 @@ static int __init xen_guest_init(void)
+ 	for_each_possible_cpu(cpu)
+ 		per_cpu(xen_vcpu_id, cpu) = cpu;
+ 
+-	if (!xen_grant_frames) {
+-		xen_auto_xlat_grant_frames.count = gnttab_max_grant_frames();
+-		rc = xen_xlate_map_ballooned_pages(&xen_auto_xlat_grant_frames.pfn,
+-										   &xen_auto_xlat_grant_frames.vaddr,
+-										   xen_auto_xlat_grant_frames.count);
+-	} else
+-		rc = gnttab_setup_auto_xlat_frames(xen_grant_frames);
+-	if (rc) {
+-		free_percpu(xen_vcpu_info);
+-		return rc;
++	if (!is_dom0less_domain()) {
++		if (!xen_grant_frames) {
++			xen_auto_xlat_grant_frames.count = gnttab_max_grant_frames();
++			rc = xen_xlate_map_ballooned_pages(&xen_auto_xlat_grant_frames.pfn,
++							   &xen_auto_xlat_grant_frames.vaddr,
++							   xen_auto_xlat_grant_frames.count);
++		} else
++			rc = gnttab_setup_auto_xlat_frames(xen_grant_frames);
++		if (rc) {
++			free_percpu(xen_vcpu_info);
++			return rc;
++		}
++		gnttab_init();
+ 	}
+-	gnttab_init();
+ 
+ 	/*
+ 	 * Making sure board specific code will not set up ops for
+diff --git a/drivers/xen/balloon.c b/drivers/xen/balloon.c
+index 617a7f4f07a8..8f90d040835f 100644
+--- a/drivers/xen/balloon.c
++++ b/drivers/xen/balloon.c
+@@ -725,6 +725,9 @@ static int __init balloon_init(void)
+ 	if (!xen_domain())
+ 		return -ENODEV;
+ 
++	if(is_dom0less_domain())
++		return 0;
++
+ 	pr_info("Initialising balloon driver\n");
+ 
+ #ifdef CONFIG_XEN_PV
+diff --git a/drivers/xen/cpu_hotplug.c b/drivers/xen/cpu_hotplug.c
+index b96b11e2b571..362c7e641c9e 100644
+--- a/drivers/xen/cpu_hotplug.c
++++ b/drivers/xen/cpu_hotplug.c
+@@ -112,6 +112,9 @@ static int __init setup_vcpu_hotplug_event(void)
+ #endif
+ 		return -ENODEV;
+ 
++	if (is_dom0less_domain())
++		return 0;
++
+ 	register_xenstore_notifier(&xsn_cpu);
+ 
+ 	return 0;
+diff --git a/drivers/xen/grant-table.c b/drivers/xen/grant-table.c
+index e1ec725c2819..82a4e851ac0d 100644
+--- a/drivers/xen/grant-table.c
++++ b/drivers/xen/grant-table.c
+@@ -1672,6 +1672,9 @@ static int __gnttab_init(void)
+ 	if (!xen_domain())
+ 		return -ENODEV;
+ 
++	if (is_dom0less_domain())
++		return 0;
++
+ 	/* Delay grant-table initialization in the PV on HVM case */
+ 	if (xen_hvm_domain() && !xen_pvh_domain())
+ 		return 0;
+diff --git a/drivers/xen/manage.c b/drivers/xen/manage.c
+index 3d5a384d65f7..6c70584e9314 100644
+--- a/drivers/xen/manage.c
++++ b/drivers/xen/manage.c
+@@ -380,6 +380,10 @@ int xen_setup_shutdown_event(void)
+ 
+ 	if (!xen_domain())
+ 		return -ENODEV;
++
++	if (is_dom0less_domain())
++		return 0;
++
+ 	register_xenstore_notifier(&xenstore_notifier);
+ 	register_reboot_notifier(&xen_reboot_nb);
+ 
+diff --git a/drivers/xen/xenbus/xenbus_dev_frontend.c b/drivers/xen/xenbus/xenbus_dev_frontend.c
+index 0792fda49a15..43a24e4c5568 100644
+--- a/drivers/xen/xenbus/xenbus_dev_frontend.c
++++ b/drivers/xen/xenbus/xenbus_dev_frontend.c
+@@ -717,6 +717,9 @@ static int __init xenbus_init(void)
+ 	if (!xen_domain())
+ 		return -ENODEV;
+ 
++	if (is_dom0less_domain())
++		return 0;
++
+ 	err = misc_register(&xenbus_dev);
+ 	if (err)
+ 		pr_err("Could not register xenbus frontend device\n");
+diff --git a/drivers/xen/xenbus/xenbus_probe.c b/drivers/xen/xenbus/xenbus_probe.c
+index 58b732dcbfb8..d20a0f5721ae 100644
+--- a/drivers/xen/xenbus/xenbus_probe.c
++++ b/drivers/xen/xenbus/xenbus_probe.c
+@@ -811,6 +811,8 @@ static int xenbus_probe_thread(void *unused)
+ 
+ static int __init xenbus_probe_initcall(void)
+ {
++	if (is_dom0less_domain())
++		return 0;
+ 	/*
+ 	 * Probe XenBus here in the XS_PV case, and also XS_HVM unless we
+ 	 * need to wait for the platform PCI device to come up or
+@@ -948,6 +950,9 @@ static int __init xenbus_init(void)
+ 	if (!xen_domain())
+ 		return -ENODEV;
+ 
++	if (is_dom0less_domain())
++		return 0;
++
+ 	xenbus_ring_ops_init();
+ 
+ 	if (xen_pv_domain())
+diff --git a/drivers/xen/xenbus/xenbus_probe_backend.c b/drivers/xen/xenbus/xenbus_probe_backend.c
+index 5abded97e1a7..19760950076b 100644
+--- a/drivers/xen/xenbus/xenbus_probe_backend.c
++++ b/drivers/xen/xenbus/xenbus_probe_backend.c
+@@ -296,6 +296,9 @@ static int __init xenbus_probe_backend_init(void)
+ 	};
+ 	int err;
+ 
++	if (is_dom0less_domain())
++		return 0;
++
+ 	DPRINTK("");
+ 
+ 	/* Register ourselves with the kernel bus subsystem */
+diff --git a/drivers/xen/xenbus/xenbus_probe_frontend.c b/drivers/xen/xenbus/xenbus_probe_frontend.c
+index 07b010a68fcf..7771f0bfe991 100644
+--- a/drivers/xen/xenbus/xenbus_probe_frontend.c
++++ b/drivers/xen/xenbus/xenbus_probe_frontend.c
+@@ -488,6 +488,9 @@ static int __init xenbus_probe_frontend_init(void)
+ 
+ 	DPRINTK("");
+ 
++	if (is_dom0less_domain())
++		return 0;
++
+ 	/* Register ourselves with the kernel bus subsystem */
+ 	err = bus_register(&xenbus_frontend.bus);
+ 	if (err)
+@@ -505,6 +508,9 @@ static int __init boot_wait_for_devices(void)
+ 	if (!xen_has_pv_devices())
+ 		return -ENODEV;
+ 
++	if (is_dom0less_domain())
++		return 0;
++
+ 	ready_to_wait_for_devices = 1;
+ 	wait_for_devices(NULL);
+ 	return 0;
+diff --git a/include/xen/arm/hypervisor.h b/include/xen/arm/hypervisor.h
+index 43ef24dd030e..9bc341c46dba 100644
+--- a/include/xen/arm/hypervisor.h
++++ b/include/xen/arm/hypervisor.h
+@@ -21,6 +21,7 @@ static inline enum paravirt_lazy_mode paravirt_get_lazy_mode(void)
+ 
+ #ifdef CONFIG_XEN
+ void __init xen_early_init(void);
++bool __init is_dom0less_domain(void);
+ #else
+ static inline void xen_early_init(void) { return; }
+ #endif
+-- 
+2.25.1
+

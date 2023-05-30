@@ -1,0 +1,391 @@
+From 10cb3f74beb0f3054ce2635665b4e1b384d25caf Mon Sep 17 00:00:00 2001
+From: Hongda Deng <Hongda.Deng@arm.com>
+Date: Mon, 22 Aug 2022 22:41:51 +0800
+Subject: [PATCH 4/4] xen/arm: Add static shared memory driver
+
+1. Add CONFIG_XEN_DOM0LESS to enable "xen,dom0less" system;
+2. And CONFIG_SHARED_MEMORY to enable static shared memory in
+   "xen,dom0less" system;
+3. Add static shared memory driver. For now, this driver only supports
+   one shared memory node.
+
+Issue-Id: SCM-4659
+Signed-off-by: Stefano Stabellini <sstabellini@kernel.org>
+Signed-off-by: Wei Chen <Wei.Chen@arm.com>
+Signed-off-by: Hongda Deng <Hongda.Deng@arm.com>
+Change-Id: I776149cebdb7188c87a872a00429caf58e4b601d
+Upstream-Status: Inappropriate [other]
+  Implementation pending further discussion
+Signed-off-by: Robbie Cao <robbie.cao@arm.com>
+---
+ drivers/xen/Kconfig         |  16 ++
+ drivers/xen/Makefile        |   1 +
+ drivers/xen/shared-memory.c | 322 ++++++++++++++++++++++++++++++++++++
+ 3 files changed, 339 insertions(+)
+ create mode 100644 drivers/xen/shared-memory.c
+
+diff --git a/drivers/xen/Kconfig b/drivers/xen/Kconfig
+index a65bd92121a5..4289b774cc14 100644
+--- a/drivers/xen/Kconfig
++++ b/drivers/xen/Kconfig
+@@ -364,4 +364,20 @@ config XEN_VIRTIO_FORCE_GRANT
+ 	  of the guest memory. This will need support on the backend side
+ 	  (e.g. qemu or kernel, depending on the virtio device types used).
+ 
++config XEN_DOM0LESS
++	bool "Xen dom0less domain support"
++	default n
++	help
++	  Enable xen dom0less domain. Note that grant table, xenbus etc.
++	  do not work in this mode.
++
++config XEN_SHARED_MEMORY
++	bool "Xen /dev/xen_shm device"
++	depends on XEN_DOM0LESS
++	default n
++	help
++	  The xen shared memory driver allows dom0less domains to share the
++	  same physical memory address, thus they could communicate with each
++	  other via it.
++
+ endmenu
+diff --git a/drivers/xen/Makefile b/drivers/xen/Makefile
+index 3434593455b2..a20520b1d89f 100644
+--- a/drivers/xen/Makefile
++++ b/drivers/xen/Makefile
+@@ -39,3 +39,4 @@ xen-gntalloc-y				:= gntalloc.o
+ xen-privcmd-y				:= privcmd.o privcmd-buf.o
+ obj-$(CONFIG_XEN_FRONT_PGDIR_SHBUF)	+= xen-front-pgdir-shbuf.o
+ obj-$(CONFIG_XEN_UNPOPULATED_ALLOC)	+= unpopulated-alloc.o
++obj-${CONFIG_XEN_SHARED_MEMORY}		+= shared-memory.o
+diff --git a/drivers/xen/shared-memory.c b/drivers/xen/shared-memory.c
+new file mode 100644
+index 000000000000..479d6f56623d
+--- /dev/null
++++ b/drivers/xen/shared-memory.c
+@@ -0,0 +1,322 @@
++#include <linux/miscdevice.h>
++#include <linux/dma-buf.h>
++#include <linux/errno.h>
++#include <linux/mutex.h>
++#include <linux/pagemap.h>
++#include <linux/of_address.h>
++
++
++/* IOCTL operations */
++#define BUFFER_GET_FD 0
++
++/* Max number of shared memory node for one guest */
++#define MAX_SHMEM_PER_VM 1
++
++struct shmem_dmabuf {
++	struct dma_buf *dmabuf;
++	struct list_head next;
++	int fd;
++	unsigned long region_start;
++	unsigned long region_size;
++	unsigned long region_end;
++	struct mutex lock;
++
++	/* Number of pages this buffer owns */
++	int nr_pages;
++
++	/* Avoid multiple users. */
++	bool opened;
++};
++
++static struct shmem_dmabuf *shmem_dmabufs[MAX_SHMEM_PER_VM];
++static DEFINE_SPINLOCK(shmem_dmabufs_lock);
++
++static struct sg_table *xen_map_dma_buf(struct dma_buf_attachment *attachment,
++					enum dma_data_direction direction)
++{
++	return NULL;
++}
++
++static void xen_unmap_dma_buf(struct dma_buf_attachment *attachment,
++			      struct sg_table *table,
++			      enum dma_data_direction direction)
++{
++	return;
++}
++
++static void xen_map_vma_open(struct vm_area_struct *vma)
++{
++	return;
++}
++
++static void xen_map_vma_close(struct vm_area_struct *vma)
++{
++	return;
++}
++
++static struct page *xen_map_vma_find_special_page(struct vm_area_struct *vma,
++						  unsigned long addr)
++{
++	return NULL;
++}
++
++static const struct vm_operations_struct xen_map_vmops = {
++	.open = xen_map_vma_open,
++	.close = xen_map_vma_close,
++	.find_special_page = xen_map_vma_find_special_page,
++};
++
++static int xen_mmap(struct dma_buf *dmabuf, struct vm_area_struct *vma)
++{
++	int err, ret = 0;
++	unsigned int i;
++	uint64_t phy_addr;
++	struct shmem_dmabuf *shmem_dmabuf = dmabuf->priv;
++	uint64_t len = vma->vm_end - vma->vm_start;
++	uint64_t nr_pages = len >> PAGE_SHIFT;
++
++	phy_addr = shmem_dmabuf->region_start + (vma->vm_pgoff << PAGE_SHIFT);
++	if (phy_addr + len - 1 > shmem_dmabuf->region_end) {
++		pr_err("Request range is out of boundary. \
++		        Request size: %llx, limit: %lx\n",
++		        len, shmem_dmabuf->region_size);
++		return -ENOMEM;
++	}
++
++	vma->vm_ops = &xen_map_vmops;
++	vma->vm_flags |= VM_DONTEXPAND | VM_DONTDUMP | VM_PFNMAP;
++
++	mutex_lock(&shmem_dmabuf->lock);
++
++	for (i = 0; i < nr_pages; i++) {
++		uint64_t offset = PAGE_SIZE * i;
++
++		err = vmf_insert_pfn(vma, vma->vm_start + offset,
++				     (phy_addr + offset) >> PAGE_SHIFT);
++		if (err != VM_FAULT_NOPAGE) {
++			pr_err("Failed to insert page, err=%d\n", err);
++			ret = -EFAULT;
++			goto out;
++		}
++	}
++
++out:
++	mutex_unlock(&shmem_dmabuf->lock);
++	return ret;
++}
++
++static void xen_dma_buf_release(struct dma_buf *dmabuf)
++{
++	return;
++}
++
++static const struct dma_buf_ops xen_dma_buf_ops = {
++	.map_dma_buf = xen_map_dma_buf,
++	.unmap_dma_buf = xen_unmap_dma_buf,
++	.mmap = xen_mmap,
++	.release = xen_dma_buf_release,
++};
++
++/*
++ * xen_shm_ioctl - handle static shared memory requests
++ *
++ * The request handler for the static shared memory device.
++ * - TEST_GET_FD
++ *   Get buffer fd of the shared memory
++ *
++ * Return: 0 on success, negative errno on failure
++ */
++static long xen_shm_ioctl(struct file *filp, unsigned int cmd,
++			  unsigned long arg)
++{
++	struct shmem_dmabuf *shmem_dmabuf = filp->private_data;
++
++	switch (cmd) {
++	case BUFFER_GET_FD:
++		if (copy_to_user((void __user *)arg, &shmem_dmabuf->fd, 4)) {
++			return -EFAULT;
++		}
++		break;
++
++	default:
++		pr_err("Unsupported IOCTL:%u\n", cmd);
++		return -EINVAL;
++	}
++
++	return 0;
++}
++
++static int xen_shm_open(struct inode *inode, struct file *flip)
++{
++	int ret;
++	struct shmem_dmabuf *shmem_dmabuf;
++	struct dma_buf *buf;
++	DEFINE_DMA_BUF_EXPORT_INFO(exp_info);
++
++	/* Currently, one share memory node can be opened once. */
++	spin_lock(&shmem_dmabufs_lock);
++
++	/* Only shmem_dmabufs[0] can be used currently. */
++	shmem_dmabuf = shmem_dmabufs[0];
++	if (shmem_dmabuf->opened) {
++		pr_err("Request xen_shm is busy.\n");
++		ret = -EBUSY;
++		goto failed;
++	}
++
++	exp_info.ops = &xen_dma_buf_ops;
++	exp_info.size = shmem_dmabuf->region_size;
++	exp_info.priv = &shmem_dmabuf->region_start;
++	exp_info.flags = O_RDWR;
++
++	buf = dma_buf_export(&exp_info);
++	if (IS_ERR(buf)) {
++		ret = PTR_ERR(buf);
++		pr_err("xen_shm dma_buf_export failed!\n");
++		goto failed;
++
++	}
++	shmem_dmabuf->dmabuf = buf;
++
++	ret = dma_buf_fd(buf, O_CLOEXEC);
++	if (ret < 0) {
++		pr_err("xen_shm install dma_buf_fd failed!\n");
++		goto failed;
++	}
++
++	shmem_dmabuf->fd = ret;
++	mutex_init(&shmem_dmabuf->lock);
++	shmem_dmabuf->opened = true;
++	shmem_dmabuf->dmabuf->priv = shmem_dmabuf;
++	flip->private_data = shmem_dmabuf;
++
++	spin_unlock(&shmem_dmabufs_lock);
++
++	return 0;
++
++failed:
++	spin_unlock(&shmem_dmabufs_lock);
++	return ret;
++}
++
++static int xen_shm_release(struct inode *inode, struct file *flip)
++{
++	struct shmem_dmabuf *shmem_dmabuf = flip->private_data;
++
++	spin_lock(&shmem_dmabufs_lock);
++
++	if (!shmem_dmabuf->opened) {
++		spin_unlock(&shmem_dmabufs_lock);
++		return 0;
++	}
++
++	if (shmem_dmabuf->dmabuf)
++		dma_buf_put(shmem_dmabuf->dmabuf);
++
++	shmem_dmabuf->opened = false;
++
++	spin_unlock(&shmem_dmabufs_lock);
++
++	return 0;
++}
++
++static const struct file_operations xen_shm_fops = {
++	.owner = THIS_MODULE,
++	.open = xen_shm_open,
++	.release = xen_shm_release,
++	.unlocked_ioctl = xen_shm_ioctl,
++#ifdef CONFIG_COMPAT
++	.compat_ioctl = xen_shm_ioctl,
++#endif
++};
++
++static struct miscdevice xen_shm_miscdev = {
++	.minor = MISC_DYNAMIC_MINOR,
++	.name = "xen_mem",
++	.fops = &xen_shm_fops,
++	.mode = S_IRWXUGO,
++};
++
++/*
++ * In current stage, we only support one "xen,domain-shared-memory-v1"
++ * node in one guest.
++ */
++static int __init xen_shm_dt_init(void)
++{
++	int rc;
++	struct device_node *np;
++	struct resource r;
++	struct shmem_dmabuf *shmem_dmabuf;
++
++	np = of_find_compatible_node(NULL, NULL, "xen,shared-memory-v1");
++	if (np == NULL) {
++		pr_err("Cannot find xen,domain-shared-memory-v1\n");
++		return -ENODEV;
++	}
++
++	rc = of_address_to_resource(np, 0, &r);
++	if (rc < 0) {
++		pr_err("Cannot get static shared memory address\n");
++		return -EINVAL;
++	}
++
++	shmem_dmabuf = kzalloc(sizeof(*shmem_dmabuf), GFP_KERNEL);
++	if (!shmem_dmabuf) {
++		pr_err("Failed to alloc memory for xen shared memory\n");
++		return -ENOMEM;
++	}
++
++	shmem_dmabuf->region_start = r.start;
++	shmem_dmabuf->region_size = resource_size(&r);
++	shmem_dmabuf->region_end =
++	    shmem_dmabuf->region_start + shmem_dmabuf->region_size - 1;
++	shmem_dmabuf->nr_pages = shmem_dmabuf->region_size >> PAGE_SHIFT;
++
++	shmem_dmabufs[0] = shmem_dmabuf;
++
++	return 0;
++}
++
++static void __exit xen_shm_deinit(void)
++{
++	unsigned int i;
++
++	for (i = 0; i < MAX_SHMEM_PER_VM; i++) {
++		if (shmem_dmabufs[i])
++			kfree(shmem_dmabufs[i]);
++	}
++}
++
++static int __init xen_shm_dev_init(void)
++{
++	int err;
++
++	/*
++	 * Init share memory region from device tree.
++	 * TODO: support multiple share memory nodes.
++	 */
++	err = xen_shm_dt_init();
++	if (err)
++		return err;
++	/*
++	 * Register Xen shared memory misc device.
++	 * TODO: support multiple devices.
++	 */
++	err = misc_register(&xen_shm_miscdev);
++	if (err) {
++		pr_err("Failed to register Xen share memory device!\n");
++		return err;
++	}
++
++	pr_info("Xen static shared memory drvier installed\n");
++
++	return 0;
++}
++
++static void __exit xen_shm_dev_exit(void)
++{
++	misc_deregister(&xen_shm_miscdev);
++}
++
++module_init(xen_shm_dev_init);
++module_exit(xen_shm_dev_exit);
+-- 
+2.25.1
+
