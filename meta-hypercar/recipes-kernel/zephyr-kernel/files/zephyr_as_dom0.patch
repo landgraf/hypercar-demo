@@ -30,3 +30,16 @@ index 00607823886..a0b3bbad121 100644
  		compatible = "xen,hvc-uart";
  		status = "okay";
  	};
+diff --git a/drivers/serial/uart_hvc_xen.c b/drivers/serial/uart_hvc_xen.c
+index 478a1e0b399..cab2b88b6a3 100644
+--- a/zephyr/drivers/serial/uart_hvc_xen.c
++++ b/zephyr/drivers/serial/uart_hvc_xen.c
+@@ -262,7 +262,7 @@ int xen_console_init(const struct device *dev)
+ 	return 0;
+ }
+ 
+-DEVICE_DT_DEFINE(DT_NODELABEL(xen_hvc), xen_console_init, NULL, &hvc_data,
++DEVICE_DT_DEFINE(DT_NODELABEL(xen_consoleio_hvc), xen_console_init, NULL, &hvc_data,
+ 		NULL, PRE_KERNEL_1, CONFIG_XEN_HVC_INIT_PRIORITY,
+ 		&xen_hvc_api);
+ 
