@@ -11,9 +11,7 @@ SRC_URI:append:raspberrypi4-64 = " file://rpi-hypercar.cfg "
 
 KBUILD_DEFCONFIG:raspberrypi4-64="defconfig"
 
-COMPATIBLE_MACHINE:append:qemuarm64-xen-efi =  "^qemuarm64-xen-efi$"
-COMPATIBLE_MACHINE:append:qemuarm64-xen-uboot =  "^qemuarm64-xen-uboot$"
-COMPATIBLE_MACHINE:raspberrypi4-64 = "^raspberrypi4-64$"
+COMPATIBLE_MACHINE:qemuarm64-xen-uboot =  "^qemuarm64-xen-uboot$"
 
 KERNEL_FEATURES:append = " \
     ${@bb.utils.contains('DISTRO_FEATURES', \
