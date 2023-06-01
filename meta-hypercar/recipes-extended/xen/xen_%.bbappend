@@ -20,4 +20,6 @@ do_configure:prepend(){
 	echo "CONFIG_STATIC_MEMORY=y" >> xen/.config
 	echo "CONFIG_MEM_ACCESS=y" >> xen/.config
 	echo "CONFIG_STATIC_SHM=y" >> xen/.config
+	echo "CONFIG_ARM_SMMU_V3=y" >> xen/.config
+	echo "CONFIG_DEVICE_TREE_DEBUG=y" >> xen/.config
 }
