@@ -43,3 +43,14 @@ index 478a1e0b399..cab2b88b6a3 100644
  		NULL, PRE_KERNEL_1, CONFIG_XEN_HVC_INIT_PRIORITY,
  		&xen_hvc_api);
  
+diff --git a/boards/arm64/xenvm/xenvm_defconfig b/boards/arm64/xenvm/xenvm_defconfig
+index 8905b74a0c9..4eec4bdb982 100644
+--- a/zephyr/boards/arm64/xenvm/xenvm_defconfig
++++ b/zephyr/boards/arm64/xenvm/xenvm_defconfig
+@@ -16,3 +16,5 @@ CONFIG_LOG=y
+ CONFIG_LOG_MODE_MINIMAL=n
+ 
+ CONFIG_USERSPACE=n
++CONFIG_UART_XEN_HVC_CONSOLEIO=y
++CONFIG_XEN_INITIAL_DOMAIN=y
+\ No newline at end of file
