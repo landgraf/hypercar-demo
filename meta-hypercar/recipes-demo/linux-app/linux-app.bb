@@ -20,6 +20,6 @@ do_install(){
 	install -D -m 0644 ${WORKDIR}/hypercar-app.service ${D}/${systemd_unitdir}/system/hypercar-app.service
 }
 
-SYSTEMD_AUTO_ENABLE = "disable"
+SYSTEMD_AUTO_ENABLE = "enable"
 SYSTEMD_PACKAGE = "${PN}"
 SYSTEMD_SERVICE:${PN} = "hypercar-app.service"
