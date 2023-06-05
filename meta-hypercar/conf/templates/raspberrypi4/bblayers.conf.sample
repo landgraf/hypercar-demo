@@ -1,0 +1,27 @@
+# SPDX-FileCopyrightText: Pavel Zhukov <pavel@zhukoff.net>
+#
+# SPDX-License-Identifier: MIT
+
+
+BBPATH = "${TOPDIR}"
+BBFILES ?= ""
+
+BBLAYERS ?= " \
+  ##OEROOT##/../core/meta \
+  ##OEROOT##/../meta-raspberrypi \
+  ##OEROOT##/../meta-hypercar \
+  ##OEROOT##/../meta-virtualization \
+  ##OEROOT##/../meta-openembedded/meta-filesystems \
+  ##OEROOT##/../meta-openembedded/meta-networking \
+  ##OEROOT##/../meta-openembedded/meta-oe \
+  ##OEROOT##/../meta-openembedded/meta-python \
+  ##OEROOT##/../meta-zephyr/meta-zephyr-bsp \
+  ##OEROOT##/../meta-zephyr/meta-zephyr-core \
+  "
+# POKY_BBLAYERS_CONF_VERSION is increased each time build/conf/bblayers.conf
+# changes incompatibly
+
+POKY_BBLAYERS_CONF_VERSION = "2"
+
+BBPATH = "${TOPDIR}"
+BBFILES ?= ""
