@@ -24,9 +24,5 @@ do_deploy() {
 	:
 }
 
-pkg_postinst_ontarget:${PN}(){
-      depmod -a
-      grep -q control_d /proc/xen/capabilities && reboot || echo softdog > /etc/modules-load.d/softdog.conf
-}
 
 addtask do_deploy after do_install before do_build

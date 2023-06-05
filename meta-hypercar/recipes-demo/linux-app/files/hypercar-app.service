@@ -1,5 +1,6 @@
 [Unit]
 Description=Start HyperCar POSIX app
+ConditionPathExists=/dev/xen_mem
 
 [Service]
 ExecStart=/usr/bin/hypercar-app
