@@ -14,7 +14,6 @@ SPDX-FileCopyrightText: <pavel@zhukoff.net>
 
 	<remote name="github" fetch="https://github.com" />
 	<remote name="openembedded" fetch="git://git.openembedded.org" />
-	<remote name="suse" fetch="https://gitlab.suse.de/" />
 
 	<project name="bitbake" remote="openembedded" revision="4dbecf6059e495246267b09d0f43086d51e6df2c" path="bitbake" />
 	<project name="openembedded-core" remote="openembedded" revision="caef2b734d68add03dea8c94c99c10bcde6547a6" path="core" />
@@ -25,5 +24,5 @@ SPDX-FileCopyrightText: <pavel@zhukoff.net>
 	<project name="saininav/meta-zephyr.git" remote="github" revision="0ef60335b4540ffefa354d6b177f7291eda3df4f" path="meta-zephyr" />
 	<project name="jonmason/meta-arm.git" remote="github" revision="c6e2ebc670faae21dfd3f39893c5d5204f9457d6" path="meta-arm" />
 	
-	<project name="pazhukov/meta-hypercar.git" remote="suse" revision="master" path="." />
+	<project name="landgraf/hypercar-demo.git" remote="github" revision="master" path="." />
 </manifest>

@@ -23,7 +23,7 @@ zypper install git-repo
 Clone repos and build the image
 ```
 mkdir hypercar && cd hypercar
-repo init -u https://gitlab.suse.de/pazhukov/meta-hypercar.git
+repo init -u https://github.com/landgraf/hypercar-demo.git
 repo sync --no-clone-bundle
 TEMPLATECONF=../meta-hypercar/conf/templates/hypercar . core/oe-init-build-env
 bitbake hypercar-image-demo
